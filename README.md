@@ -9,6 +9,7 @@ PG_CONNECTION_STRING=postgresql://node_commander:node_commander@localhost/node_c
 HASH_PASSWORD_ITERATIONS=10000
 NODE_ENV=development
 GRAPHIQL=on
+BITCOIN_RPC_AUTH=__cookie__:fOSJ+IkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
 ```
 
 ### JWT_SIGNING_KEY
@@ -34,6 +35,10 @@ Set to `development` or `production` [as appropriate](http://expressjs.com/en/ad
 ### GRAPHIQL
 
 Set to `on` to make GraphiQL (A graphical interactive in-browser GraphQL IDE) available at the same end point as GraqphQL).  Leave off in production unless you've got CPU/Bandwidth to share in spades.
+
+### BITCOIN_RPC_AUTH
+
+The `user:password` for connecting to the bitcoin node via JSON-RPC.
 
 ## Contributing
 

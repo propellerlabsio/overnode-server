@@ -1,11 +1,9 @@
+import rpc from '../rpc';
+
 // The root provides a resolver function for each API endpoint
 const resolvers = {
   Query: {
-    status: async () => {
-      return {
-        node_status: 'Fine',
-      };
-    },
+    rpc_info: () => rpc('getinfo'),
   },
 };
 

@@ -19,7 +19,7 @@ console.log(`Node running in ${process.env.NODE_ENV} mode`);
 knex
   .migrate
   .latest()
-  .then(async () => {
+  .then(() => {
     console.log('Migration(s) finished - if any');
 
     // Create express
@@ -28,15 +28,11 @@ knex
     // TODO investigate/fix/remove this in production!
     app.use(cors());
 
-    // Prevent hotlinking of images / bandwidth sucking
-    // app.use('/logos', hotlinkPrevention);
-
     // Prevent attackers knowing we're running express
     // Recommended by expressjs.com
     app.disable('x-powered-by');
 
-    // Static files
-    // TODO prevent leeching
+    // Serve website and static files from /static
     app.use(express.static('static'));
 
     // Create Graphql schema from type defs and resolvers
@@ -53,8 +49,6 @@ knex
     }));
     app.listen(4000);
     console.log('Running a GraphQL API server at localhost:4000/graphql');
-
-    // TODO Kick off database update job
   })
   .catch((err) => {
     console.error(err);

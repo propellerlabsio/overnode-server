@@ -4,18 +4,24 @@ import http from 'http';
 const bitcoinRpcHost = '127.0.0.1'; // TODO move to env var
 const bitcoinRpcPort = 8332; // TODO move to env var
 
-export default function request(query) {
+export default function request(method, params = []) {
+
+  let responseData = '';
+
   // return new pending promise
   return new Promise((resolve, reject) => {
-    const postData = JSON.stringify(query);
-    const responseData = '';
+    const rpcRequest = {
+      jsonrpc: '1.0',
+      id: `node-manager${(new Date()).toISOString()}`,
+      method,
+      params,
+    };
+    const postData = JSON.stringify(rpcRequest);
 
     const options = {
       hostname: bitcoinRpcHost,
       port: bitcoinRpcPort,
-      // path: '/upload',
-      // auth: 'REPLACED:REPLACED', // TODO move to env var
-      auth: '__cookie__:hRyLxvy9C4lQodzG/st0G3+Sa/otiUDGvncWkdVzRGg=', // TODO move to env var
+      auth: process.env.BITCOIN_RPC_AUTH,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json-rpc',
@@ -24,17 +30,15 @@ export default function request(query) {
     };
 
     const req = http.request(options, (res) => {
-      // Expecting http 400
-      if (res.statusCode !== '400') {
-        reject(new Error(`Server responded with HTTP code ${res.statusCode}`));
-        // console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+      if (res.statusCode !== 200) {
+        reject(new Error(`Bitcoin node responded with HTTP code ${res.statusCode}`));
       }
       res.setEncoding('utf8');
       res.on('data', (chunk) => {
-        responseData.concat(chunk);
+        responseData = responseData.concat(chunk);
       });
       res.on('end', () => {
-        resolve(responseData);
+        resolve(JSON.parse(responseData).result);
       });
     });
 
