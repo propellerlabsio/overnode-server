@@ -1,5 +1,24 @@
 // Construct a schema, using GraphQL schema language
 const typeDefs = `
+    type RpcBlock {
+      hash: String!
+      confirmations: Int!
+      size: Int!
+      height: Int!
+      version: Int!
+      versionHex: String!
+      merkleroot: String!
+      tx: [String]
+      time: Int!
+      mediantime: Int!
+      nonce: Int!
+      bits: String!
+      difficulty: Float!
+      chainwork: String!
+      previousblockhash: String!
+      nextblockhash: String!
+    }
+
     type RpcInfo {
       balance: Int!
       blocks: Int!
@@ -20,9 +39,12 @@ const typeDefs = `
       version: Int!
       walletversion: Int!      
     }
+
     type Query {
         # Get raw node info via JSON-RPC call to getinfo
-        rpc_info: RpcInfo!
+        rpc_getinfo: RpcInfo!
+
+        rpc_getblock(hash: String!): RpcBlock!
     }
 `;
 
