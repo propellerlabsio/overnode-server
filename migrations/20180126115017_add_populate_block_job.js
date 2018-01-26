@@ -5,6 +5,7 @@ exports.up = function (knex) {
   return knex(tableName).insert({
     function_name: functionName,
     height: -1,
+    error_height: null,
   });
 };
 
