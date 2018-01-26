@@ -9,6 +9,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import { knex } from './knex';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
+import collate from './collate';
 
 // const { hotlinkPrevention } = require('./api/hotlinkPrevention');
 
@@ -49,6 +50,10 @@ knex
     }));
     app.listen(4000);
     console.log('Running a GraphQL API server at localhost:4000/graphql');
+
+    // Kickoff collation job
+    collate();
+
   })
   .catch((err) => {
     console.error(err);

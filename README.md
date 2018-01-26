@@ -1,32 +1,27 @@
 
 ## Environment variables
-Create a file in the application root directory called `.env` (nothing in the name before the period) and populate it with appropriate values.  Note: in development, the application root directory is the `dist/` folder.
+In production, set the environment variables per your normal procedure for your operating system giving consideration to best security practices.
 
-The following is an example `.env`:
+In local development, you can create a file in the application root directory called `.env` (nothing in the name before the period) and populate it with appropriate values.
+
+The following is an example of the `.env` file contents:
 ```
-JWT_SIGNING_KEY=aefe3182-873e-430e-8f25-ab9759ae5320
+BITCOIN_RPC_AUTH=__cookie__:fOSJ+IkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
 PG_CONNECTION_STRING=postgresql://node_commander:node_commander@localhost/node_commander
-HASH_PASSWORD_ITERATIONS=10000
 NODE_ENV=development
 GRAPHIQL=on
-BITCOIN_RPC_AUTH=__cookie__:fOSJ+IkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
+COLLATION_JOB_CHUNK_SIZE=10
 ```
 
-### JWT_SIGNING_KEY
+### BITCOIN_RPC_AUTH
 
-This is a secret used to sign JSON Web Tokens.  In production, it should be randomly generated preferablly via uuid.v4().  In development, any string will suffice (e.g. `secret`).
+The `user:password` for connecting to the bitcoin node via JSON-RPC.
 
 ### PG_CONNECTION_STRING
 
 A postgresql `conninfo` string to connect to the database in the format:
 
 `postgresql://<role>:<password>@<server>/<database>`
-
-
-### HASH_PASSWORD_ITERATIONS
-
-The number of iterations to use when hashing a user's password - the higher the number, the harder to crack but heavier cost in time and CPU.
-
 
 ### NODE_ENV
 
@@ -36,9 +31,9 @@ Set to `development` or `production` [as appropriate](http://expressjs.com/en/ad
 
 Set to `on` to make GraphiQL (A graphical interactive in-browser GraphQL IDE) available at the same end point as GraqphQL).  Leave off in production unless you've got CPU/Bandwidth to share in spades.
 
-### BITCOIN_RPC_AUTH
+### COLLATION_JOB_CHUNK_SIZE 
 
-The `user:password` for connecting to the bitcoin node via JSON-RPC.
+A collation job grabs historical data from the blockchain and summarizes, transposes or otherwise collates it into postgres tables for high performance retrieval and serving to clients.  This parameter determines how many blocks should be processed at a single time.
 
 ## Contributing
 
