@@ -38,7 +38,11 @@ export default function request(method, params = []) {
         responseData = responseData.concat(chunk);
       });
       res.on('end', () => {
-        resolve(JSON.parse(responseData).result);
+        if (responseData) {
+          resolve(JSON.parse(responseData).result);
+        } else {
+          resolve();
+        }
       });
     });
 
