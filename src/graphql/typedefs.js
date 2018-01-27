@@ -1,5 +1,16 @@
 // Construct a schema, using GraphQL schema language
 const typeDefs = `
+    type Block {
+      hash: String!
+      size: Int!
+      height: Int!
+      time: Int!
+      tx_count: Int!
+      interval: Int!
+      previousblockhash: String!
+      nextblockhash: String!
+    }
+
     type RpcBlock {
       hash: String!
       confirmations: Int!
@@ -41,6 +52,8 @@ const typeDefs = `
     }
 
     type Query {
+        blocks: [Block],
+
         # Get raw node info via JSON-RPC call to getinfo
         rpc_getinfo: RpcInfo!
 

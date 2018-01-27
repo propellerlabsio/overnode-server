@@ -4,7 +4,7 @@ import http from 'http';
 const bitcoinRpcHost = '127.0.0.1'; // TODO move to env var
 const bitcoinRpcPort = 8332; // TODO move to env var
 
-export default function request(method, params = []) {
+export default function request(method, ...params) {
 
   let responseData = '';
 

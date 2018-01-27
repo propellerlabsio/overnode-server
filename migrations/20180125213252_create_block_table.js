@@ -5,7 +5,8 @@ exports.up = function (knex) {
     table.integer('size');
     table.integer('height');
     table.integer('time');  // Y2038 bug
-    table.integer('timesinceprevious')
+    table.integer('tx_count');
+    table.integer('interval').comment('Interval in seconds since last block');
     table.string('previousblockhash', 64);
     table.string('nextblockhash', 64);
   });

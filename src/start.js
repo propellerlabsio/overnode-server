@@ -9,7 +9,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import { knex } from './knex';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
-import collate from './collate';
+import { resetJobErrors, collate } from './collate';
 
 // const { hotlinkPrevention } = require('./api/hotlinkPrevention');
 
@@ -20,7 +20,7 @@ console.log(`Node running in ${process.env.NODE_ENV} mode`);
 knex
   .migrate
   .latest()
-  .then(() => {
+  .then(async () => {
     console.log('Migration(s) finished - if any');
 
     // Create express
@@ -51,7 +51,9 @@ knex
     app.listen(4000);
     console.log('Running a GraphQL API server at localhost:4000/graphql');
 
-    // Kickoff collation job
+
+    // Reset any job errors and then kick off collate job(s)
+    await resetJobErrors();
     collate();
 
   })
