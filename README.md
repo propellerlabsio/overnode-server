@@ -1,4 +1,20 @@
 
+# OverNode
+
+OverNode is a Bitcoin full node monitoring and explorer (query) tool.  This project contains the server code which prodes a GraphQL interface for interacting with the node.  The overnode-client project contains one example UI that can be used with this server.
+
+**WARNING:** 
+
+**This project is heavily under construction and not yet even in an alpha state.  Functionality is heavily undercooked and there may be serious outstanding security problems.  Do not run this code exposed to the internet**
+
+## Quickstart
+
+TODO
+
+## Contributing
+
+TODO
+
 ## Environment variables
 In production, set the environment variables per your normal procedure for your operating system giving consideration to best security practices.
 
@@ -7,7 +23,7 @@ In local development, you can create a file in the application root directory ca
 The following is an example of the `.env` file contents:
 ```
 BITCOIN_RPC_AUTH=__cookie__:fOSJ+IkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
-PG_CONNECTION_STRING=postgresql://overnode_user:overnode_password@localhost/overnode_database
+PG_CONNECTION_STRING=postgresql://overnode:overnode@localhost/overnode
 NODE_ENV=development
 GRAPHIQL=on
 COLLATION_JOB_CHUNK_SIZE=10
@@ -40,4 +56,3 @@ A collation job grabs historical data from the blockchain and summarizes, transp
 This project is linted with eslint using the AirBnB style guide rules. 
 
 ## TODO
-* Add block frequency last hour etec, minutes since last block to answer questions like "Why is BCH taking so long this morning?"
