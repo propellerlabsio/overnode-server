@@ -76,6 +76,11 @@ export async function collate() {
     for (let index = 0; index < process.env.COLLATION_JOB_CHUNK_SIZE; index++) {
       if (job.error_height === null) {
         updatedJob = await functions[job.function_name](updatedJob || job);
+
+        // TODO this update isn't in same transaction as blocks/other table updates
+        // which means sudden server shutdown can lead to inconsistent state
+        // that must be manually recovered via psql.  Need to use transactions
+        // or make this whole thing less fragile.
         await knex('job')
           .where('id', updatedJob.id)
           .update({
