@@ -9,6 +9,7 @@ exports.up = function (knex) {
     table.integer('interval').comment('Interval in seconds since last block');
     table.string('previousblockhash', 64);
     table.string('nextblockhash', 64);
+    table.index('height');
   });
 };
 
