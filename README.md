@@ -7,7 +7,7 @@ In local development, you can create a file in the application root directory ca
 The following is an example of the `.env` file contents:
 ```
 BITCOIN_RPC_AUTH=__cookie__:fOSJ+IkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
-PG_CONNECTION_STRING=postgresql://node_commander:node_commander@localhost/node_commander
+PG_CONNECTION_STRING=postgresql://overnode_user:overnode_password@localhost/overnode_database
 NODE_ENV=development
 GRAPHIQL=on
 COLLATION_JOB_CHUNK_SIZE=10

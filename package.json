@@ -1,7 +1,7 @@
 {
-  "name": "bitcoin-node-commander-server",
+  "name": "overnode-server",
   "version": "1.0.0",
-  "description": "Bitcoin Node Commander - all components except UI",
+  "description": "OverNode Server",
   "main": "index.js",
   "dependencies": {
     "cors": "^2.8.4",
