@@ -11,6 +11,35 @@ const typeDefs = `
       nextblockhash: String!
     }
 
+    type Peer {
+      id: Int!
+      addr: String!
+      addrlocal: String!
+      services: String!
+      relaytxes: Boolean!
+      lastsend: Int!
+      lastrecv: Int!
+
+      # TODO add custom bigint scalar type and use that instead
+      bytessent: Float!
+
+      # TODO add custom bigint scalar type and use that instead
+      bytesrecv: Float!
+      
+      conntime: Int!
+      timeoffset: Float!
+      pingtime: Float!
+      minping: Float!
+      version: Int!
+      subver: String!
+      inbound: Boolean!
+      startingheight: Int!
+      banscore: Int!
+      synced_headers: Int!
+      synced_blocks: Int!
+      whitelisted: Boolean!
+    }
+
     type RpcBlock {
       hash: String!
       confirmations: Int!
@@ -53,6 +82,8 @@ const typeDefs = `
 
     type Query {
         blocks: [Block],
+
+        peers: [Peer],
 
         # Get raw node info via JSON-RPC call to getinfo
         rpc_getinfo: RpcInfo!

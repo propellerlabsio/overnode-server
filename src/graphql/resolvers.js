@@ -4,6 +4,7 @@ import { knex } from '../knex';
 // The root provides a resolver function for each API endpoint
 const resolvers = {
   Query: {
+    peers: () => rpc('getpeerinfo'),
     blocks() {
       return knex('block')
         .orderBy('height', 'desc')
