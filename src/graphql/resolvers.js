@@ -10,8 +10,8 @@ const resolvers = {
         .orderBy('height', 'desc')
         .limit(15);
     },
-    rpc_getinfo: () => rpc('getinfo'),
-    rpc_getblock: (parent, { hash }) => rpc('getblock', hash),
+    info: () => rpc('getinfo'),
+    block: (parent, { hash }) => rpc('getblock', hash),
   },
 };
 

@@ -2,6 +2,25 @@
 const typeDefs = `
     type Block {
       hash: String!
+      confirmations: Int!
+      size: Int!
+      height: Int!
+      version: Int!
+      versionHex: String!
+      merkleroot: String!
+      tx: [String]
+      time: Int!
+      mediantime: Int!
+      nonce: Int!
+      bits: String!
+      difficulty: Float!
+      chainwork: String!
+      previousblockhash: String!
+      nextblockhash: String!
+    }
+
+    type BlockSummary {
+      hash: String!
       size: Int!
       height: Int!
       time: Int!
@@ -9,6 +28,27 @@ const typeDefs = `
       interval: Int!
       previousblockhash: String!
       nextblockhash: String!
+    }
+
+    type Info {
+      balance: Int!
+      blocks: Int!
+      connections: Int!
+      difficulty: Float!
+      errors: String!
+      fork: String!
+      keypoololdest: Int!
+      keypoolsize: Int!
+      paytxfee:  Int!
+      protocolversion: Int!
+      proxy: String!
+      relayfee: Float!
+      status: String!
+      testnet: Boolean!
+      timeoffset: Int!
+      unlocked_until: Int!
+      version: Int!
+      walletversion: Int!      
     }
 
     type Peer {
@@ -40,55 +80,14 @@ const typeDefs = `
       whitelisted: Boolean!
     }
 
-    type RpcBlock {
-      hash: String!
-      confirmations: Int!
-      size: Int!
-      height: Int!
-      version: Int!
-      versionHex: String!
-      merkleroot: String!
-      tx: [String]
-      time: Int!
-      mediantime: Int!
-      nonce: Int!
-      bits: String!
-      difficulty: Float!
-      chainwork: String!
-      previousblockhash: String!
-      nextblockhash: String!
-    }
-
-    type RpcInfo {
-      balance: Int!
-      blocks: Int!
-      connections: Int!
-      difficulty: Float!
-      errors: String!
-      fork: String!
-      keypoololdest: Int!
-      keypoolsize: Int!
-      paytxfee:  Int!
-      protocolversion: Int!
-      proxy: String!
-      relayfee: Float!
-      status: String!
-      testnet: Boolean!
-      timeoffset: Int!
-      unlocked_until: Int!
-      version: Int!
-      walletversion: Int!      
-    }
-
     type Query {
-        blocks: [Block],
+        block(hash: String!): Block!
+
+        blocks: [BlockSummary],
+
+        info: Info!
 
         peers: [Peer],
-
-        # Get raw node info via JSON-RPC call to getinfo
-        rpc_getinfo: RpcInfo!
-
-        rpc_getblock(hash: String!): RpcBlock!
     }
 `;
 
