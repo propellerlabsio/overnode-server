@@ -37,7 +37,7 @@ const functions = {
       updatedJob.error_message = err.message;
     }
 
-    return updatedJob
+    return updatedJob;
   },
 };
 
@@ -53,13 +53,12 @@ export async function resetJobErrors() {
     })
     .then(() => {
       // eslint-disable-next-line no-console
-      console.info('Error state of jobs has been reset for reattempting'); 
+      console.info('Error state of jobs has been reset for reattempting');
     });
 }
 
 
 export async function collate() {
-  console.debug('Collate started');
   const { blocks } = await rpc('getinfo');
   const bestBlockHeight = blocks - 1; // TODO check if subtract 1 is necessary
 
@@ -71,7 +70,7 @@ export async function collate() {
     .orderBy('height');
 
   // Process jobs
-  jobs.forEach(async (job, index) => {
+  jobs.forEach(async (job) => {
     let updatedJob;
     for (let index = 0; index < process.env.COLLATION_JOB_CHUNK_SIZE; index++) {
       if (job.error_height === null) {
@@ -85,8 +84,8 @@ export async function collate() {
           .where('id', updatedJob.id)
           .update({
             height: updatedJob.height,
-            error_height: updatedJob.error_height, 
-            error_message: updatedJob.error_message, 
+            error_height: updatedJob.error_height,
+            error_message: updatedJob.error_message,
           });
         jobs[index] = updatedJob;
       }
