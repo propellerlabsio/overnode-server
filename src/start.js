@@ -10,9 +10,7 @@ import { knex } from './knex';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
 import { resetJobErrors, collate } from './collate';
-
-// const { hotlinkPrevention } = require('./api/hotlinkPrevention');
-
+import * as socket from './socket';
 
 console.log(`Node running in ${process.env.NODE_ENV} mode`);
 
@@ -56,6 +54,9 @@ knex
     await resetJobErrors();
     collate();
 
+    // Start websockets server for handling live data feeds
+    socket.start(app);
+    socket.broadcast();
   })
   .catch((err) => {
     console.error(err);

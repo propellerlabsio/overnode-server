@@ -11,7 +11,8 @@
     "graphql": "^0.12.3",
     "graphql-tools": "^2.18.0",
     "knex": "^0.14.2",
-    "pg": "^7.4.1"
+    "pg": "^7.4.1",
+    "ws": "^4.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
