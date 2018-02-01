@@ -3,13 +3,12 @@
 
 import http from 'http';
 import WebSocket from 'ws';
-
 import rpc from './rpc';
-// import { knex } from './knex';
-
 
 const CONNECTION_OPEN = 1;
-let wss;
+let wss; // Websocket servr
+let txPerSecond = 0;
+let mempoolReadings = [];
 
 export function start(app) {
   const server = http.createServer(app);
@@ -30,8 +29,6 @@ export function start(app) {
         console.log('Socket error:', err);
       }
     });
-
-    ws.send('something');
   });
 
   server.listen(4010, () => {
@@ -41,10 +38,47 @@ export function start(app) {
 
 export async function broadcast() {
   try {
+    // Get required data from bitcoind
+    const info = await rpc('getinfo');
     const mempool = await rpc('getmempoolinfo');
+    const now = new Date();
+
+    // Store mempool tx count readings
+    mempoolReadings.push({
+      time: now,
+      height: info.blocks,
+      txCount: mempool.size,
+    });
+
+    // Remove any mempool readings from earlier blocks since we can't compare the txCount
+    const readingsThisHeight = mempoolReadings.filter(reading => reading.height === info.blocks);
+    mempoolReadings = readingsThisHeight;
+
+    // Need at least two readings to calculate
+    if (mempoolReadings.length > 1) {
+      const earliestReading = mempoolReadings[0];
+      const latestReading = mempoolReadings[mempoolReadings.length - 1];
+      const elapsedSeconds = (latestReading.time - earliestReading.time) / 1000;
+      const transactionCount = latestReading.txCount - earliestReading.txCount;
+      txPerSecond = transactionCount / elapsedSeconds;
+    } else {
+      // Reset until we get at least two readings in same block
+      txPerSecond = 0;
+    }
+    
+    // Only keep 60 mempool readings
+    if (mempoolReadings.length > 59) {
+      mempoolReadings.shift();
+    }
+
+    // Structure broadcast data
     const outData = {
-      mempool_tx_count: mempool.size,
-      mempool_size_bytes: mempool.bytes,
+      mempool: {
+        time: now,
+        txCount: mempool.size,
+        txPerSecond,
+        bytes: mempool.bytes,
+      },
     };
 
     wss.clients.forEach((client) => {
@@ -56,11 +90,6 @@ export async function broadcast() {
     console.log('Broadcast error: ', err);
   }
 
-  // Delay 500ms to allow other stuff to run if we are on a single core machine
-  // Don't know how long the above functionality takes to run but hopefully
-  // under 500ms so we end up with new data broadcast once per second or less.
-  // TODO - make this more robust. In case the above code is very fast we
-  // probably don't get any benefit from sub 1 second rebroadasting and hitting
-  // bitcoind more frequently might not be good.
-  setTimeout(broadcast, 500);
+  // Wait a second before broadcasting again
+  setTimeout(broadcast, 1000);
 }
