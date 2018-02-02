@@ -11,7 +11,10 @@ const typeDefs = `
       tx: [String]
       time: Int!
       mediantime: Int!
-      nonce: Int!
+
+      # TODO add custom bigint scalar type and use that instead
+      nonce: Float!
+
       bits: String!
       difficulty: Float!
       chainwork: String!
