@@ -15,8 +15,8 @@ const typeDefs = `
       bits: String!
       difficulty: Float!
       chainwork: String!
-      previousblockhash: String!
-      nextblockhash: String!
+      previousblockhash: String
+      nextblockhash: String
     }
 
     type BlockSummary {
@@ -26,8 +26,8 @@ const typeDefs = `
       time: Int!
       tx_count: Int!
       interval: Int!
-      previousblockhash: String!
-      nextblockhash: String!
+      previousblockhash: String
+      nextblockhash: String
     }
 
     type Info {
