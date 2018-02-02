@@ -3,7 +3,7 @@
 
 import http from 'http';
 import WebSocket from 'ws';
-import rpc from './rpc';
+import { request as rpc } from './rpc';
 
 const CONNECTION_OPEN = 1;
 let wss; // Websocket servr
@@ -65,7 +65,7 @@ export async function broadcast() {
       // Reset until we get at least two readings in same block
       txPerSecond = 0;
     }
-    
+
     // Only keep 60 mempool readings
     if (mempoolReadings.length > 59) {
       mempoolReadings.shift();

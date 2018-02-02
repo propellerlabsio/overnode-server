@@ -1,11 +1,14 @@
 
 import http from 'http';
+import fs from 'fs';
+import path from 'path';
 
 const bitcoinRpcHost = '127.0.0.1'; // TODO move to env var
 const bitcoinRpcPort = 8332; // TODO move to env var
 
-export default function request(method, ...params) {
+let auth;
 
+export function request(method, ...params) {
   let responseData = '';
 
   // return new pending promise
@@ -21,7 +24,7 @@ export default function request(method, ...params) {
     const options = {
       hostname: bitcoinRpcHost,
       port: bitcoinRpcPort,
-      auth: process.env.BITCOIN_RPC_AUTH,
+      auth,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json-rpc',
@@ -54,4 +57,34 @@ export default function request(method, ...params) {
     req.write(postData);
     req.end();
   });
+}
+
+export async function initialize() {
+  try {
+    // If rpc user and password haven't been provided
+    // attempt to load cookie from Bitcoin data directory
+    if (!process.env.BITCOIN_RPC_AUTH) {
+      if (!process.env.BITCOIN_DATA_DIRECTORY) {
+        throw new Error('No BITCOIN_RPC_AUTH or BITCOIN_DATA_DIRECTORY environment variables set.');
+      } else {
+        // Get RPC auth from cookie in Bitcoin data directory
+
+        const fullPath = path.join(process.env.BITCOIN_DATA_DIRECTORY, '.cookie');
+        auth = fs.readFileSync(fullPath);
+      }
+    } else {
+      auth = process.env.BITCOIN_RPC_AUTH;
+    }
+
+    // Test credentials
+    await request('getinfo');
+  } catch (err) {
+    if (err.message.includes('ECONNREFUSED')) {
+      throw new Error('Unable to connect to bitcoind (possibly not running): ECONNREFUSED');
+    } else if (err.message.includes('401')) {
+      throw new Error('Unable to connect to bitcoind (possibly incorrect RPC credentials): server returned 401.');
+    } else {
+      throw err;
+    }
+  }
 }

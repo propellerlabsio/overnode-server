@@ -23,6 +23,7 @@ In local development, you can create a file in the application root directory ca
 The following is an example of the `.env` file contents:
 ```
 BITCOIN_RPC_AUTH=__cookie__:fOSJ+IkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
+BITCOIN_DATA_DIRECTORY=F:\Bitcoin
 PG_CONNECTION_STRING=postgresql://overnode:overnode@localhost/overnode
 NODE_ENV=development
 GRAPHIQL=on
@@ -31,7 +32,11 @@ COLLATION_JOB_CHUNK_SIZE=10
 
 ### BITCOIN_RPC_AUTH
 
-The `user:password` for connecting to the bitcoin node via JSON-RPC.
+The `user:password` for connecting to the bitcoin node via JSON-RPC.  If this environment variable is not provided, it is necessary that the BITCOIN_DATA_DIRECTORY variable be set.
+
+### BITCOIN_DATA_DIRECTORY
+
+If no BITCOIN_RPC_AUTH is provided, this folder is read for a file called `.cookie` which is recreated on restart of the `bitcoind` daemon and contains the RPC credentials that can be used to log in.
 
 ### PG_CONNECTION_STRING
 

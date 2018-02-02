@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 
-import rpc from './rpc';
+import { request as rpc } from './rpc';
 import { knex } from './knex';
 
 

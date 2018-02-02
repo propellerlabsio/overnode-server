@@ -1,4 +1,4 @@
-import rpc from '../rpc';
+import { request as rpc } from '../rpc';
 import { knex } from '../knex';
 
 // The root provides a resolver function for each API endpoint
