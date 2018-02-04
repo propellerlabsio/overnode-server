@@ -10,8 +10,9 @@ import { knex } from './knex';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
 import { resetJobErrors, collate } from './collate';
-import * as socket from './socket';
+import socket from './socket';
 import * as rpc from './rpc';
+import { start as startMain } from './main';
 
 console.log(`Node running in ${process.env.NODE_ENV} mode`);
 
@@ -69,8 +70,11 @@ knex
     collate();
 
     // Start websockets server for handling live data feeds
-    socket.start(app);
-    socket.broadcast();
+    socket(app);
+
+    // Start main management process for continually monitoring bitcoind,
+    // compiling and broadcasting statistics over the websocket
+    startMain();
   })
   .catch((err) => {
     // Misc error - log and play on
