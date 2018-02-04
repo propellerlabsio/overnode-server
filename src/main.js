@@ -1,5 +1,6 @@
 import { request as rpc } from './rpc';
 import { knex } from './knex';
+import { collate } from './collate';
 
 let mempoolReadings = [];
 
@@ -35,6 +36,11 @@ async function main() {
   const [{ min }] = await knex('job').min('height').select();
   status.height.overnode = min;
 
+  // If database is behind bitcoind, trigger collate job
+  if (status.height.bitcoind > status.height.overnode) {
+    collate();
+  }
+
   // Store mempool tx count readings
   mempoolReadings.push({
     time: status.time,
@@ -62,6 +68,8 @@ async function main() {
   if (mempoolReadings.length > 59) {
     mempoolReadings.shift();
   }
+
+
 
   // Wait a second before running again
   setTimeout(main, 1000);

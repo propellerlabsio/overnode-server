@@ -3,6 +3,7 @@
 import { request as rpc } from './rpc';
 import { knex } from './knex';
 
+let running = false;
 
 const functions = {
   async populate_block_table(job) {
@@ -59,6 +60,14 @@ export async function resetJobErrors() {
 
 
 export async function collate() {
+  // Check we aren't already running this process
+  if (running) {
+    return;
+  }
+
+  // Set running flag so we don't trip over ourselves
+  running = true;
+
   const { blocks } = await rpc('getinfo');
   const bestBlockHeight = blocks - 1; // TODO check if subtract 1 is necessary
 
@@ -91,4 +100,7 @@ export async function collate() {
       }
     }
   });
+
+  // Clear running flag so we can run again when requested
+  running = false;
 }

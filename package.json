@@ -23,6 +23,7 @@
   },
   "scripts": {
     "build": "babel src -d dist",
+    "dev": "npm run build && node index",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Peter Roehlen, PropellerLabs.io",
