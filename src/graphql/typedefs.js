@@ -54,6 +54,14 @@ const typeDefs = `
       walletversion: Int!      
     }
 
+    type Job {
+      id: Int!
+      function_name: String!
+      height: Int
+      error_height: Int
+      error_message: String
+    }
+
     type Peer {
       id: Int!
       addr: String!
@@ -89,6 +97,8 @@ const typeDefs = `
         blocks: [BlockSummary],
 
         info: Info!
+
+        jobs: [Job]
 
         peers: [Peer],
     }

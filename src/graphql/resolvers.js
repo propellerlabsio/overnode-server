@@ -11,6 +11,7 @@ const resolvers = {
         .limit(15);
     },
     info: () => rpc('getinfo'),
+    jobs: () => knex('job').select(),
     block: (parent, { hash }) => rpc('getblock', hash),
   },
 };

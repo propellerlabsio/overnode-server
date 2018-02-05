@@ -7,6 +7,7 @@ let mempoolReadings = [];
 // Keep this small as it is broadcast
 export const status = {
   time: null,
+  jobErrors: 0,
   height: {
     bitcoind: null,
     overnode: null,
@@ -26,6 +27,10 @@ async function main() {
 
   // Set server time for data age
   status.time = new Date();
+
+  // Get number of jobs in error
+  const [{ count }] = await knex('job').count('id').whereNotNull('error_message');
+  status.jobErrors = Number(count);
 
   // Keep core status information in importable variable for other processes
   status.height.bitcoind = info.blocks;
