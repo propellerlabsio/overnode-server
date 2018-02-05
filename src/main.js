@@ -43,7 +43,7 @@ async function main() {
 
   // If database is behind bitcoind, trigger collate job
   if (status.height.bitcoind > status.height.overnode) {
-    collate(info);
+    await collate(info);
   }
 
   // Store mempool tx count readings

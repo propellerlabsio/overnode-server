@@ -3,8 +3,6 @@
 import { request as rpc } from './rpc';
 import { knex } from './knex';
 
-let running = false;
-
 const functions = {
   async populate_block_table(job) {
     const updatedJob = Object.assign({}, job);
@@ -46,27 +44,18 @@ export async function resetJobErrors() {
   // On server restart, clear error state of any jobs so they will be reattempted at least once.
   // This allows the admin to fix any underlying issues and restart the server without having
   // to update flags in database fields.
-  knex('job')
+  await knex('job')
     .whereNotNull('error_height')
     .update({
       error_height: null,
       error_message: null,
-    })
-    .then(() => {
-      // eslint-disable-next-line no-console
-      console.info('Error state of jobs has been reset for reattempting');
     });
+
+  // eslint-disable-next-line no-console
+  console.info('Error state of jobs has been reset for reattempting');
 }
 
 export async function collate(rpcInfo) {
-  // Check we aren't already running this process
-  if (running) {
-    return;
-  }
-
-  // Set running flag so we don't trip over ourselves
-  running = true;
-
   // Get collation jobs sorted by progress from lowest/earliest block height
   // Where job block height is less than current best block height
   const bestBlockHeight = rpcInfo.blocks - 1;
@@ -76,7 +65,7 @@ export async function collate(rpcInfo) {
     .orderBy('height');
 
   // Process jobs
-  jobs.forEach(async (job) => {
+  await Promise.all(jobs.map(async (job) => {
     let updatedJob;
     for (let index = 0; index < process.env.COLLATION_JOB_CHUNK_SIZE; index++) {
       if (job.error_height === null) {
@@ -96,8 +85,5 @@ export async function collate(rpcInfo) {
         jobs[index] = updatedJob;
       }
     }
-  });
-
-  // Clear running flag so we can run again when requested
-  running = false;
+  }));
 }
