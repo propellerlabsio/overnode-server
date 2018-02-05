@@ -58,8 +58,7 @@ export async function resetJobErrors() {
     });
 }
 
-
-export async function collate() {
+export async function collate(rpcInfo) {
   // Check we aren't already running this process
   if (running) {
     return;
@@ -68,11 +67,9 @@ export async function collate() {
   // Set running flag so we don't trip over ourselves
   running = true;
 
-  const { blocks } = await rpc('getinfo');
-  const bestBlockHeight = blocks - 1; // TODO check if subtract 1 is necessary
-
   // Get collation jobs sorted by progress from lowest/earliest block height
   // Where job block height is less than current best block height
+  const bestBlockHeight = rpcInfo.blocks - 1;
   const jobs = await knex('job')
     .select()
     .where('height', '<', bestBlockHeight)

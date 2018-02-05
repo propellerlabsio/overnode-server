@@ -67,7 +67,6 @@ knex
 
     // Reset any job errors and then kick off collate job(s)
     await resetJobErrors();
-    collate();
 
     // Start websockets server for handling live data feeds
     socket(app);
