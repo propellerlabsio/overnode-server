@@ -11,7 +11,13 @@ const resolvers = {
         .limit(15);
     },
     info: () => rpc('getinfo'),
-    jobs: () => knex('job').select(),
+    jobs: (root, args) => {
+      let query = knex('job').select();
+      if (args.onlyJobsInError) {
+        query = query.whereNotNull('error_message');
+      }
+      return query;
+    },
     block: (parent, { hash }) => rpc('getblock', hash),
   },
 };

@@ -98,7 +98,7 @@ const typeDefs = `
 
         info: Info!
 
-        jobs: [Job]
+        jobs(onlyJobsInError: Boolean): [Job]
 
         peers: [Peer],
     }
