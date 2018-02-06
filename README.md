@@ -58,7 +58,7 @@ BITCOIN_DATA_DIRECTORY=F:\Bitcoin
 PG_CONNECTION_STRING=postgresql://overnode:overnode@localhost/overnode
 NODE_ENV=development
 GRAPHIQL=on
-COLLATION_JOB_CHUNK_SIZE=10
+COLLATION_JOB_CHUNK_SIZE=1000
 ```
 
 #### BITCOIN_RPC_AUTH
@@ -83,6 +83,6 @@ Set to `development` or `production` [as appropriate](http://expressjs.com/en/ad
 
 Set to `on` to make GraphiQL (A graphical interactive in-browser GraphQL IDE) available at the same end point as GraqphQL).  Leave off in production unless you've got CPU/Bandwidth to share in spades.
 
-#### COLLATION_JOB_CHUNK_SIZE 
+#### COLLATION_JOB_CHUNK_SIZE
 
-A collation job grabs historical data from the blockchain and summarizes, transposes or otherwise collates it into postgres tables for high performance retrieval and serving to clients.  This parameter determines how many blocks should be processed at a single time.
+A collation job grabs data from the blockchain and summarizes, transposes or otherwise collates it into postgres tables for high performance retrieval and serving to clients.  This parameter determines how many blocks should be processed at a single time.  Higher values will slow down any other processing including serving live data through the websocket.  Lower values will increase the amount of time it takes to sync the database with the bitcoin node.

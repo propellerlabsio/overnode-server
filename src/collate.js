@@ -55,21 +55,26 @@ export async function resetJobErrors() {
   console.info('Error state of jobs has been reset for reattempting');
 }
 
-export async function collate(rpcInfo) {
+export async function collate(fromHeight, toHeight) {
   // Get collation jobs sorted by progress from lowest/earliest block height
   // Where job block height is less than current best block height
-  const bestBlockHeight = rpcInfo.blocks - 1;
   const jobs = await knex('job')
     .select()
-    .where('height', '<', bestBlockHeight)
+    .where('height', '>=', fromHeight)
+    .andWhere('height', '<=', toHeight)
     .orderBy('height');
 
+  jobs.forEach((job, index) => {
+    jobs[index].function = functions[job.function_name];
+  });
+
   // Process jobs
-  await Promise.all(jobs.map(async (job) => {
-    let updatedJob;
-    for (let index = 0; index < process.env.COLLATION_JOB_CHUNK_SIZE; index++) {
-      if (job.error_height === null) {
-        updatedJob = await functions[job.function_name](updatedJob || job);
+  for (let height = fromHeight; height <= toHeight; height++) {
+    // eslint-disable-next-line no-loop-func
+    await Promise.all(jobs.map(async (job, index) => {
+      let updatedJob;
+      if (job.error_height === null && job.height < height) {
+        updatedJob = await job.function(updatedJob || job);
 
         // TODO this update isn't in same transaction as blocks/other table updates
         // which means sudden server shutdown can lead to inconsistent state
@@ -84,6 +89,6 @@ export async function collate(rpcInfo) {
           });
         jobs[index] = updatedJob;
       }
-    }
-  }));
+    }));
+  }
 }
