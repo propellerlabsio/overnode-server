@@ -94,7 +94,7 @@ const typeDefs = `
     type Query {
         block(hash: String!): Block!
 
-        blocks: [BlockSummary],
+        blocks(fromHeight: Int, limit: Int): [BlockSummary],
 
         info: Info!
 
