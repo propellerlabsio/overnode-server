@@ -22,10 +22,10 @@
     "eslint-plugin-import": "^2.8.0"
   },
   "scripts": {
-    "build": "babel src -d dist",
+    "build": "babel src -d dist --copy-files",
     "dev": "npm run build && node index",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Peter Roehlen, PropellerLabs.io",
+  "author": "Peter Roehlen, propellerlabs.com",
   "license": "MIT"
 }

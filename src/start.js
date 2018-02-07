@@ -33,15 +33,17 @@ knex
       // Create express
       app = express();
 
+      // Serve static/public files from dist/public.  This is the folder
+      // where the build output of the overnode client should be copied
+      // to on the production server
+      app.use(express.static('dist/public'));
+
       // TODO investigate/fix/remove this in production!
       app.use(cors());
 
       // Prevent attackers knowing we're running express
       // Recommended by expressjs.com
       app.disable('x-powered-by');
-
-      // Serve website and static files from /static
-      app.use(express.static('static'));
 
       // Create Graphql schema from type defs and resolvers
       const schema = makeExecutableSchema({
@@ -61,8 +63,9 @@ knex
       process.exit(1);
     }
 
-    // Start listening for graphql requests
+    // Start listening for requests
     app.listen(4000);
+    console.log('Running a http server at localhost:4000');
     console.log('Running a GraphQL API server at localhost:4000/graphql');
 
     // Reset any job errors and then kick off collate job(s)
