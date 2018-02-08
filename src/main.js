@@ -51,7 +51,8 @@ async function main() {
   });
 
   // Get most common peer height
-  [status.height.peers] = peerHeights.sort((a, b) => a.count < b.count);
+  const [commonHeight] = peerHeights.sort((a, b) => a.count < b.count);
+  status.height.peers = commonHeight.height;
 
   // Get the highest block we have fully synced to the database
   const [{ min }] = await knex('job').min('height').select();
