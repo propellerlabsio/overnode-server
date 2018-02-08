@@ -64,12 +64,12 @@ export async function initialize() {
     // If rpc user and password haven't been provided
     // attempt to load cookie from Bitcoin data directory
     if (!process.env.BITCOIN_RPC_AUTH) {
-      if (!process.env.BITCOIN_DATA_DIRECTORY) {
-        throw new Error('No BITCOIN_RPC_AUTH or BITCOIN_DATA_DIRECTORY environment variables set.');
+      if (!process.env.BITCOIN_COOKIE_DIRECTORY) {
+        throw new Error('No BITCOIN_RPC_AUTH or BITCOIN_COOKIE_DIRECTORY environment variables set.');
       } else {
         // Get RPC auth from cookie in Bitcoin data directory
 
-        const fullPath = path.join(process.env.BITCOIN_DATA_DIRECTORY, '.cookie');
+        const fullPath = path.join(process.env.BITCOIN_COOKIE_DIRECTORY, '.cookie');
         auth = fs.readFileSync(fullPath);
       }
     } else {

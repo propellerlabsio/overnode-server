@@ -9,7 +9,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import { knex } from './knex';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
-import { resetJobErrors, collate } from './collate';
+import { resetJobErrors } from './collate';
 import socket from './socket';
 import * as rpc from './rpc';
 import { start as startMain } from './main';
