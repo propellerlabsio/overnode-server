@@ -60,7 +60,7 @@ async function main() {
   // If database is behind bitcoind, trigger collate job
   if (status.height.bitcoind > status.height.overnode) {
     const fromHeight = status.height.overnode;
-    let toHeight = fromHeight + process.env.COLLATION_JOB_CHUNK_SIZE;
+    let toHeight = fromHeight + Number(process.env.COLLATION_JOB_CHUNK_SIZE);
     if (toHeight > status.height.bitcoind) {
       toHeight = status.height.bitcoind;
     }
