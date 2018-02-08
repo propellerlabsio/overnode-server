@@ -45,7 +45,7 @@ export default function start(app) {
     });
   });
 
-  server.listen(4010, () => {
+  server.listen(process.env.SOCKET_PORT || 4010, () => {
     console.log('Socket server listening on %d', server.address().port);
   });
 

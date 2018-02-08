@@ -53,11 +53,13 @@ In local development, you can create a file in the application root directory ca
 
 The following is an example of the `.env` file contents:
 ```
-BITCOIN_RPC_AUTH=__cookie__:fOSJ+IkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
+BITCOIN_RPC_AUTH=overnode:fOSJ+IbkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
 PG_CONNECTION_STRING=postgresql://overnode:overnode@localhost/overnode
 NODE_ENV=development
 GRAPHIQL=on
 COLLATION_JOB_CHUNK_SIZE=1000
+HTML_PORT=4000
+SOCKET_PORT=4010
 ```
 
 #### BITCOIN_RPC_AUTH

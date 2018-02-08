@@ -64,9 +64,10 @@ knex
     }
 
     // Start listening for requests
-    app.listen(4000);
-    console.log('Running a http server at localhost:4000');
-    console.log('Running a GraphQL API server at localhost:4000/graphql');
+    const htmlPort = process.env.HTML_PORT || 4000;
+    app.listen(htmlPort);
+    console.log(`Running a http server at localhost:${htmlPort}`);
+    console.log(`Running a GraphQL API server at localhost:${htmlPort}/graphql`);
 
     // Reset any job errors and then kick off collate job(s)
     await resetJobErrors();
