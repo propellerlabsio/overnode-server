@@ -24,6 +24,7 @@ async function main() {
   // Get required data from bitcoind
   const info = await rpc('getinfo');
   const mempool = await rpc('getmempoolinfo');
+  const peers = await rpc('getpeerinfo');
 
   // Set server time for data age
   status.time = new Date();
@@ -36,6 +37,21 @@ async function main() {
   status.height.bitcoind = info.blocks;
   status.mempool.bytes = mempool.bytes;
   status.mempool.txCount = mempool.size;
+
+  // Collect count of height value for peers
+  const peerHeights = [];
+  peers.forEach((peer) => {
+    const index = peerHeights
+      .findIndex(rec => rec.height === peer.startingheight);
+    if (index < 0) {
+      peerHeights.push({ height: peer.startingheight, count: 1 });
+    } else {
+      peerHeights[index].count++;
+    }
+  });
+
+  // Get most common peer height
+  [status.height.peers] = peerHeights.sort((a, b) => a.count < b.count);
 
   // Get the highest block we have fully synced to the database
   const [{ min }] = await knex('job').min('height').select();
