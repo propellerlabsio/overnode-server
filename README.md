@@ -58,8 +58,7 @@ PG_CONNECTION_STRING=postgresql://overnode:overnode@localhost/overnode
 NODE_ENV=development
 GRAPHIQL=on
 COLLATION_JOB_CHUNK_SIZE=1000
-HTML_PORT=4000
-SOCKET_PORT=4010
+PORT=4000
 ```
 
 #### BITCOIN_RPC_AUTH

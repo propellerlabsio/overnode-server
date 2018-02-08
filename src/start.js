@@ -64,8 +64,8 @@ knex
     }
 
     // Start listening for requests
-    const htmlPort = process.env.HTML_PORT || 4000;
-    app.listen(htmlPort);
+    const htmlPort = process.env.PORT || 4000;
+    const expressServer = app.listen(htmlPort);
     console.log(`Running a http server at localhost:${htmlPort}`);
     console.log(`Running a GraphQL API server at localhost:${htmlPort}/graphql`);
 
@@ -73,7 +73,7 @@ knex
     await resetJobErrors();
 
     // Start websockets server for handling live data feeds
-    socket(app);
+    socket(expressServer);
 
     // Start main management process for continually monitoring bitcoind,
     // compiling and broadcasting statistics over the websocket

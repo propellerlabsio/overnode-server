@@ -24,8 +24,7 @@ export async function broadcast() {
   setTimeout(broadcast, 1000);
 }
 
-export default function start(app) {
-  const server = http.createServer(app);
+export default function start(server) {
   wss = new WebSocket.Server({ server });
 
   wss.on('connection', (ws) => {
@@ -43,10 +42,6 @@ export default function start(app) {
         console.log('Socket error:', err);
       }
     });
-  });
-
-  server.listen(process.env.SOCKET_PORT || 4010, () => {
-    console.log('Socket server listening on %d', server.address().port);
   });
 
   // Start broadcasting
