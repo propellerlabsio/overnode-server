@@ -6,7 +6,7 @@ import { status } from '../main';
 // The root provides a resolver function for each API endpoint
 const resolvers = {
   Query: {
-    block: (parent, { hash }) => rpc('getblock', hash),
+    block: (parent, { hash, height }) => rpc('getblock', hash || height.toString()),
     blocks(root, args) {
       const fromHeight = args.fromHeight || status.height.overnode;
       const limit = args.limit || 15;

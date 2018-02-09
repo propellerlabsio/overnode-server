@@ -34,7 +34,7 @@ export function request(method, ...params) {
 
     const req = http.request(options, (res) => {
       if (res.statusCode !== 200) {
-        reject(new Error(`Bitcoin node responded with HTTP code ${res.statusCode}`));
+        reject(new Error(`Bitcoin node responded with HTTP code ${res.statusCode}: ${res.statusMessage}`));
       }
       res.setEncoding('utf8');
       res.on('data', (chunk) => {
