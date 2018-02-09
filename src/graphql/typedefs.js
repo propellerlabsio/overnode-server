@@ -33,7 +33,21 @@ const typeDefs = `
       nextblockhash: String
     }
 
-    type Info {
+    type CPU {
+      model: String!
+      speed: Int!
+    }
+
+    type Host {
+      hostname: String!
+      platform: String!
+      cpus: [CPU]
+
+      # TODO add custom bigint scalar type and use that instead
+      totalmem: Float!
+    }
+
+    type Node {
       balance: Int!
       blocks: Int!
       connections: Int!
@@ -96,7 +110,9 @@ const typeDefs = `
 
         blocks(fromHeight: Int, limit: Int): [BlockSummary],
 
-        info: Info!
+        host: Host!
+
+        node: Node!
 
         jobs(onlyJobsInError: Boolean): [Job]
 

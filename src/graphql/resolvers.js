@@ -1,3 +1,4 @@
+import os from 'os';
 import { request as rpc } from '../rpc';
 import { knex } from '../knex';
 import { status } from '../main';
@@ -5,7 +6,7 @@ import { status } from '../main';
 // The root provides a resolver function for each API endpoint
 const resolvers = {
   Query: {
-    peers: () => rpc('getpeerinfo'),
+    block: (parent, { hash }) => rpc('getblock', hash),
     blocks(root, args) {
       const fromHeight = args.fromHeight || status.height.overnode;
       const limit = args.limit || 15;
@@ -14,7 +15,12 @@ const resolvers = {
         .orderBy('height', 'desc')
         .limit(limit);
     },
-    info: () => rpc('getinfo'),
+    host: () => ({
+      hostname: os.hostname(),
+      platform: os.platform(),
+      cpus: os.cpus(),
+      totalmem: os.totalmem(),
+    }),
     jobs: (root, args) => {
       let query = knex('job').select();
       if (args.onlyJobsInError) {
@@ -22,7 +28,8 @@ const resolvers = {
       }
       return query;
     },
-    block: (parent, { hash }) => rpc('getblock', hash),
+    node: () => rpc('getinfo'),
+    peers: () => rpc('getpeerinfo'),
   },
 };
 
