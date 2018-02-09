@@ -29,8 +29,6 @@ const typeDefs = `
       time: Int!
       tx_count: Int!
       interval: Int!
-      previousblockhash: String
-      nextblockhash: String
     }
 
     type CPU {

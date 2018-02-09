@@ -27,8 +27,6 @@ const functions = {
         time: nextBlock.time,
         interval,
         tx_count: nextBlock.tx.length,
-        previousblockhash: nextBlock.previousblockhash,
-        nextblockhash: nextBlock.nextblockhash,
       });
       updatedJob.height = nextBlockHeight;
     } catch (err) {
