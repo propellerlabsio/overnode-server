@@ -42,9 +42,9 @@ async function main() {
   const peerHeights = [];
   peers.forEach((peer) => {
     const index = peerHeights
-      .findIndex(rec => rec.height === peer.startingheight);
+      .findIndex(rec => rec.height === peer.synced_blocks);
     if (index < 0) {
-      peerHeights.push({ height: peer.startingheight, count: 1 });
+      peerHeights.push({ height: peer.synced_blocks, count: 1 });
     } else {
       peerHeights[index].count++;
     }
