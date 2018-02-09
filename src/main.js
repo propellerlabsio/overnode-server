@@ -73,9 +73,9 @@ async function main() {
   let timeSinceLastStored = 0;
   if (mempoolReadings.length) {
     latestReading = mempoolReadings[mempoolReadings.length - 1];
-    timeSinceLastStored = latestReading.time - status.time;
+    timeSinceLastStored = status.time - latestReading.time;
   }
-  if (timeSinceLastStored >= 1000) {
+  if (!mempoolReadings.length || timeSinceLastStored >= 1000) {
     mempoolReadings.push({
       time: status.time,
       height: info.blocks,
