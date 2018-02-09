@@ -8,7 +8,8 @@ exports.up = function(knex, Promise) {
 };
 
 exports.down = function(knex, Promise) {
-  // Can't undo - data is gone.  Return empty promise
+  // Can't undo data removal - it's gone but we can
+  // at least reinstate the fields.
   return knex.schema.table('block', (table) =>{
     table.string('previousblockhash', 64);
     table.string('nextblockhash', 64);
