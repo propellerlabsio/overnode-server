@@ -96,8 +96,11 @@ async function main() {
     mempoolReadings.shift();
   }
 
-  // Wait a second before running again
-  setTimeout(main, 1000);
+  // // Wait a second before running again
+  // setTimeout(main, 1000);
+
+  // Loop back immediately
+  main();
 }
 
 export function start() {
