@@ -68,12 +68,20 @@ async function main() {
     await collate(fromHeight, toHeight);
   }
 
-  // Store mempool tx count readings
-  mempoolReadings.push({
-    time: status.time,
-    height: info.blocks,
-    txCount: mempool.size,
-  });
+  // Store mempool tx count readings - about 1 a second
+  let latestReading;
+  let timeSinceLastStored = 0;
+  if (mempoolReadings.length) {
+    latestReading = mempoolReadings[mempoolReadings.length - 1];
+    timeSinceLastStored = latestReading.time - status.time;
+  }
+  if (timeSinceLastStored >= 1000) {
+    mempoolReadings.push({
+      time: status.time,
+      height: info.blocks,
+      txCount: mempool.size,
+    });
+  }
 
   // Remove any mempool readings from earlier blocks since we can't compare the txCount
   const readingsThisHeight = mempoolReadings.filter(reading => reading.height === info.blocks);
@@ -82,7 +90,7 @@ async function main() {
   // Need at least two readings to calculate
   if (mempoolReadings.length > 1) {
     const earliestReading = mempoolReadings[0];
-    const latestReading = mempoolReadings[mempoolReadings.length - 1];
+    latestReading = mempoolReadings[mempoolReadings.length - 1];
     const elapsedSeconds = (latestReading.time - earliestReading.time) / 1000;
     const transactionCount = latestReading.txCount - earliestReading.txCount;
     status.mempool.txPerSecond = transactionCount / elapsedSeconds;
