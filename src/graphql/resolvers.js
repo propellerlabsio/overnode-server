@@ -101,6 +101,9 @@ const resolvers = {
       };
     },
   },
+  Transaction: {
+    block: transaction => resolvers.Query.block(transaction, { hash: transaction.blockhash }),
+  },
 };
 
 export default resolvers;

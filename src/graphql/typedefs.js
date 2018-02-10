@@ -122,6 +122,7 @@ const typeDefs = `
       txid: String!
       size: Int!
       blockhash: String
+      block: Block
       confirmations: Int
       time: Int!
       inputs: [TransactionInput]
