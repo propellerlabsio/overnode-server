@@ -13,7 +13,7 @@ const typeDefs = `
       version: Int!
       versionHex: String!
       merkleroot: String!
-      summary: [BlockSummary]
+      summary: BlockSummary
       transactions(fromIndex: Int = 0, limit: Int): [Transaction]
       time: Int!
       mediantime: Int!

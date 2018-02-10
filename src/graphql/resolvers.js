@@ -20,8 +20,9 @@ const resolvers = {
         resolvers.Query.block(block, { hash: block.previousblockhash }) :
         null;
     },
-    summary(block) {
-      return knex('block').where('hash', block.hash);
+    async summary(block) {
+      const [summary] = await knex('block').where('hash', block.hash);
+      return summary;
     },
     async transactions(block, args) {
       // Limit rows to be returned
