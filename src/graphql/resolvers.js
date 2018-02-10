@@ -13,7 +13,7 @@ const resolvers = {
       // Allow querying from height 0 (first block) even though in JavaScript zero is "falsey"
       let { fromHeight } = args;
       if (fromHeight !== 0 && !fromHeight) {
-        fromHeight = status.height.overnode;
+        fromHeight = status.stats.height.overnode;
       }
 
       // Limit rows to be returned
@@ -41,8 +41,8 @@ const resolvers = {
       }
       return query;
     },
-    node: () => rpc('getinfo'),
-    peers: () => rpc('getpeerinfo'),
+    node: () => status.rpc.info,
+    peers: () => status.rpc.peers,
   },
 };
 

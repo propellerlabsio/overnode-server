@@ -1,7 +1,5 @@
 /* Allow console messages in this file: */
 /*   eslint-disable no-console          */
-
-import http from 'http';
 import WebSocket from 'ws';
 import { status } from './main';
 
@@ -10,7 +8,7 @@ let wss; // Websocket servr
 
 export async function broadcast() {
   try {
-    const outData = JSON.stringify(status);
+    const outData = JSON.stringify(status.stats);
     wss.clients.forEach((client) => {
       if (client.readyState === CONNECTION_OPEN) {
         client.send(outData);

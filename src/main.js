@@ -6,41 +6,50 @@ let mempoolReadings = [];
 
 // Keep this small as it is broadcast
 export const status = {
-  time: null,
-  jobsInErrorCount: 0,
-  height: {
-    bitcoind: null,
-    overnode: null,
-    peers: null,
+  // Keep following property small -data gets broadcast every second to
+  // all connected clients
+  stats: {
+    time: null,
+    jobsInErrorCount: 0,
+    height: {
+      bitcoind: null,
+      overnode: null,
+      peers: null,
+    },
+    mempool: {
+      txCount: null,
+      txPerSecond: null,
+      bytes: null,
+    },
   },
-  mempool: {
-    txCount: null,
-    txPerSecond: null,
-    bytes: null,
+  rpc: {
+    info: {},
+    mempool: {},
+    peers: [],
   },
 };
 
 async function main() {
   // Get required data from bitcoind
-  const info = await rpc('getinfo');
-  const mempool = await rpc('getmempoolinfo');
-  const peers = await rpc('getpeerinfo');
+  status.rpc.info = await rpc('getinfo');
+  status.rpc.mempool = await rpc('getmempoolinfo');
+  status.rpc.peers = await rpc('getpeerinfo');
 
   // Set server time for data age
-  status.time = new Date();
+  status.stats.time = new Date();
 
   // Get number of jobs in error
   const [{ count }] = await knex('job').count('id').whereNotNull('error_message');
-  status.jobsInErrorCount = Number(count);
+  status.stats.jobsInErrorCount = Number(count);
 
   // Keep core status information in importable variable for other processes
-  status.height.bitcoind = info.blocks;
-  status.mempool.bytes = mempool.bytes;
-  status.mempool.txCount = mempool.size;
+  status.stats.height.bitcoind = status.rpc.info.blocks;
+  status.stats.mempool.bytes = status.rpc.mempool.bytes;
+  status.stats.mempool.txCount = status.rpc.mempool.size;
 
   // Collect count of height value for peers
   const peerHeights = [];
-  peers.forEach((peer) => {
+  status.rpc.peers.forEach((peer) => {
     const index = peerHeights
       .findIndex(rec => rec.height === peer.synced_blocks);
     if (index < 0) {
@@ -52,18 +61,18 @@ async function main() {
 
   // Get most common peer height
   const [commonHeight] = peerHeights.sort((a, b) => a.count < b.count);
-  status.height.peers = commonHeight.height;
+  status.stats.height.peers = commonHeight.height;
 
   // Get the highest block we have fully synced to the database
   const [{ min }] = await knex('job').min('height').select();
-  status.height.overnode = min;
+  status.stats.height.overnode = min;
 
   // If database is behind bitcoind, trigger collate job
-  if (status.height.bitcoind > status.height.overnode) {
-    const fromHeight = status.height.overnode;
+  if (status.stats.height.bitcoind > status.stats.height.overnode) {
+    const fromHeight = status.stats.height.overnode;
     let toHeight = fromHeight + Number(process.env.COLLATION_JOB_CHUNK_SIZE);
-    if (toHeight > status.height.bitcoind) {
-      toHeight = status.height.bitcoind;
+    if (toHeight > status.stats.height.bitcoind) {
+      toHeight = status.stats.height.bitcoind;
     }
     await collate(fromHeight, toHeight);
   }
@@ -73,18 +82,19 @@ async function main() {
   let timeSinceLastStored = 0;
   if (mempoolReadings.length) {
     latestReading = mempoolReadings[mempoolReadings.length - 1];
-    timeSinceLastStored = status.time - latestReading.time;
+    timeSinceLastStored = status.stats.time - latestReading.time;
   }
   if (!mempoolReadings.length || timeSinceLastStored >= 1000) {
     mempoolReadings.push({
-      time: status.time,
-      height: info.blocks,
-      txCount: mempool.size,
+      time: status.stats.time,
+      height: status.rpc.info.blocks,
+      txCount: status.rpc.mempool.size,
     });
   }
 
   // Remove any mempool readings from earlier blocks since we can't compare the txCount
-  const readingsThisHeight = mempoolReadings.filter(reading => reading.height === info.blocks);
+  const readingsThisHeight = mempoolReadings
+    .filter(reading => reading.height === status.rpc.info.blocks);
   mempoolReadings = readingsThisHeight;
 
   // Need at least two readings to calculate
@@ -93,10 +103,10 @@ async function main() {
     latestReading = mempoolReadings[mempoolReadings.length - 1];
     const elapsedSeconds = (latestReading.time - earliestReading.time) / 1000;
     const transactionCount = latestReading.txCount - earliestReading.txCount;
-    status.mempool.txPerSecond = transactionCount / elapsedSeconds;
+    status.stats.mempool.txPerSecond = transactionCount / elapsedSeconds;
   } else {
     // Reset until we get at least two readings in same block
-    status.mempool.txPerSecond = 0;
+    status.stats.mempool.txPerSecond = 0;
   }
 
   // Only keep 60 mempool readings
