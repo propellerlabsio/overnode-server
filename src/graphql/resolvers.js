@@ -98,6 +98,7 @@ const resolvers = {
         confirmations: rawTx.confirmations,
         time: rawTx.time,
         inputs: rawTx.vin.map(input => ({
+          coinbase: input.coinbase,
           txid: input.txid,
           output_number: input.vout,
         })),

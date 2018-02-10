@@ -130,6 +130,7 @@ const typeDefs = `
     }
 
     type TransactionInput {
+      coinbase: String
       txid: String
       output_number: Int
     }
