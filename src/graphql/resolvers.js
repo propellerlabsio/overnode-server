@@ -7,6 +7,28 @@ const maxResults = 100;
 
 // The root provides a resolver function for each API endpoint
 const resolvers = {
+  Block: {
+    summary(block) {
+      return knex('block').where('hash', block.hash);
+    },
+    async transactions(block) {
+      // May be hundreds (or more) transactions so can't fetch asyncronously or bitcoind throws
+      // error "Work queue depth exceeded".  We could increase the limit that bitcoind will
+      // accept by setting option rpcworkqueue=<n> to a higher number than the default
+      // (16?) but not sure what the ceiling or limit is so process synchronously instead.
+      // This data will be moved to database soon(™)
+      const transactions = [];
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const txid of block.tx) {
+        // eslint-disable-next-line no-await-in-loop
+        const transaction = await resolvers.Query.transaction({}, { txid });
+        transactions.push(transaction);
+      }
+
+      return transactions;
+    },
+  },
   Query: {
     block: (parent, { hash, height }) => rpc('getblock', hash || height.toString()),
     blocks(root, args) {
@@ -49,7 +71,7 @@ const resolvers = {
         txid: rawTx.txid,
         size: rawTx.size,
         blockhash: rawTx.blockhash,
-        confirmations: rawTx.confirmation,
+        confirmations: rawTx.confirmations,
         time: rawTx.time,
         inputs: rawTx.vin.map(input => ({
           txid: input.txid,
