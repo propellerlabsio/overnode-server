@@ -130,7 +130,7 @@ const typeDefs = `
     }
 
     type TransactionInput {
-      txid: String!
+      txid: String
       output_number: Int
     }
 
