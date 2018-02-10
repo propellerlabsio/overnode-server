@@ -114,11 +114,12 @@ async function main() {
     mempoolReadings.shift();
   }
 
-  // // Wait a second before running again
-  // setTimeout(main, 1000);
+  // Try to run this loop no more often than once every second or so.  More frequent
+  // isn't helpful and maxes out CPU.  Need to allow for logic execution above.
+  // Setting to run again in 500ms until we get time to implement more sophisticated
+  // logic
+  setTimeout(main, 500);
 
-  // Loop back immediately
-  main();
 }
 
 export function start() {
