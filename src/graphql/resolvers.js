@@ -3,6 +3,8 @@ import { request as rpc } from '../rpc';
 import { knex } from '../knex';
 import { status } from '../main';
 
+const maxResults = 100;
+
 // The root provides a resolver function for each API endpoint
 const resolvers = {
   Query: {
@@ -13,7 +15,14 @@ const resolvers = {
       if (fromHeight !== 0 && !fromHeight) {
         fromHeight = status.height.overnode;
       }
+
+      // Limit rows to be returned
       const limit = args.limit || 15;
+      if (limit > maxResults) {
+        throw new Error(`Please limit your query to ${maxResults} results.`);
+      }
+
+      // Return query promise
       return knex('block')
         .where('height', '<=', fromHeight)
         .orderBy('height', 'desc')
