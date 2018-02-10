@@ -8,7 +8,11 @@ const resolvers = {
   Query: {
     block: (parent, { hash, height }) => rpc('getblock', hash || height.toString()),
     blocks(root, args) {
-      const fromHeight = args.fromHeight || status.height.overnode;
+      // Allow querying from height 0 (first block) even though in JavaScript zero is "falsey"
+      let { fromHeight } = args;
+      if (fromHeight !== 0 && !fromHeight) {
+        fromHeight = status.height.overnode;
+      }
       const limit = args.limit || 15;
       return knex('block')
         .where('height', '<=', fromHeight)
