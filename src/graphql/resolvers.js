@@ -8,11 +8,13 @@ const maxResults = 100;
 // The root provides a resolver function for each API endpoint
 const resolvers = {
   Block: {
+    // eslint-disable-next-line arrow-body-style
     nextblock: (block) => {
       return block.nextblockhash ?
         resolvers.Query.block(block, { hash: block.nextblockhash }) :
         null;
     },
+    // eslint-disable-next-line arrow-body-style
     previousblock: (block) => {
       return block.previousblockhash ?
         resolvers.Query.block(block, { hash: block.previousblockhash }) :
@@ -38,6 +40,10 @@ const resolvers = {
 
       return transactions;
     },
+  },
+  BlockSummary: {
+    details: blockSummary =>
+      resolvers.Query.block(blockSummary, { hash: blockSummary.hash }),
   },
   Query: {
     block: (parent, { hash, height }) => rpc('getblock', hash || height.toString()),
