@@ -8,6 +8,16 @@ const maxResults = 100;
 // The root provides a resolver function for each API endpoint
 const resolvers = {
   Block: {
+    nextblock: (block) => {
+      return block.nextblockhash ?
+        resolvers.Query.block(block, { hash: block.nextblockhash }) :
+        null;
+    },
+    previousblock: (block) => {
+      return block.previousblockhash ?
+        resolvers.Query.block(block, { hash: block.previousblockhash }) :
+        null;
+    },
     summary(block) {
       return knex('block').where('hash', block.hash);
     },
