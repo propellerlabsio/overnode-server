@@ -3,9 +3,9 @@ import { request as rpc } from '../rpc';
 import { knex } from '../knex';
 import { status } from '../main';
 
-const maxResults = 100;
+const defaultResultCount = 15;
+const maxResultCount = 50;
 
-// The root provides a resolver function for each API endpoint
 const resolvers = {
   Block: {
     // eslint-disable-next-line arrow-body-style
@@ -23,16 +23,24 @@ const resolvers = {
     summary(block) {
       return knex('block').where('hash', block.hash);
     },
-    async transactions(block) {
-      // May be hundreds (or more) transactions so can't fetch asyncronously or bitcoind throws
-      // error "Work queue depth exceeded".  We could increase the limit that bitcoind will
-      // accept by setting option rpcworkqueue=<n> to a higher number than the default
-      // (16?) but not sure what the ceiling or limit is so process synchronously instead.
+    async transactions(block, args) {
+      // Limit rows to be returned
+      const limit = args.limit || defaultResultCount;
+      if (limit > maxResultCount) {
+        throw new Error(`Please limit transactions to no more than ${maxResultCount} results.`);
+      }
+
+      // Get range of tx ids to be returned
+      const txIds = block.tx.slice(args.fromIndex, args.fromIndex + limit);
+
+      // Fetch transactions synchronously.  Async would require that we
+      // increase the limit that bitcoind will accept by setting option rpcworkqueue=<n>
+      // to a higher number than the default (16?) but obviously there's a ceiling
+      // to how far we can keepd doing that.
       // This data will be moved to database soon(™)
       const transactions = [];
-
       // eslint-disable-next-line no-restricted-syntax
-      for (const txid of block.tx) {
+      for (const txid of txIds) {
         // eslint-disable-next-line no-await-in-loop
         const transaction = await resolvers.Query.transaction({}, { txid });
         transactions.push(transaction);
@@ -55,9 +63,9 @@ const resolvers = {
       }
 
       // Limit rows to be returned
-      const limit = args.limit || 15;
-      if (limit > maxResults) {
-        throw new Error(`Please limit your query to ${maxResults} results.`);
+      const limit = args.limit || defaultResultCount;
+      if (limit > maxResultCount) {
+        throw new Error(`Please limit your query to ${maxResultCount} results.`);
       }
 
       // Return query promise
