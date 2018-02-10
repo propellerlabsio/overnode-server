@@ -1,4 +1,9 @@
 // Construct a schema, using GraphQL schema language
+
+// TODO Several fields are using type Float because of GraphQL's lack
+// of a native BigInt scalar type.  We should import a BigInt
+// implementation or roll our own.  Examples include:
+// Block.nonce, Host.totalmem, Peer.bytessent and bytesrecv.
 const typeDefs = `
     type Block {
       hash: String!
@@ -11,10 +16,7 @@ const typeDefs = `
       tx: [String]
       time: Int!
       mediantime: Int!
-
-      # TODO add custom bigint scalar type and use that instead
       nonce: Float!
-
       bits: String!
       difficulty: Float!
       chainwork: String!
@@ -40,8 +42,6 @@ const typeDefs = `
       hostname: String!
       platform: String!
       cpus: [CPU]
-
-      # TODO add custom bigint scalar type and use that instead
       totalmem: Float!
     }
 
@@ -82,13 +82,8 @@ const typeDefs = `
       relaytxes: Boolean!
       lastsend: Int!
       lastrecv: Int!
-
-      # TODO add custom bigint scalar type and use that instead
       bytessent: Float!
-
-      # TODO add custom bigint scalar type and use that instead
       bytesrecv: Float!
-      
       conntime: Int!
       timeoffset: Float!
       pingtime: Float!
@@ -114,7 +109,30 @@ const typeDefs = `
 
         jobs(onlyJobsInError: Boolean): [Job]
 
-        peers: [Peer],
+        peers: [Peer]
+
+        transaction(txid: String!): Transaction
+    }
+
+    type Transaction {
+      txid: String!
+      size: Int!
+      blockhash: String
+      confirmations: Int
+      time: Int!
+      inputs: [TransactionInput]
+      outputs: [TransactionOutput]
+    }
+
+    type TransactionInput {
+      txid: String!
+      output_number: Int
+    }
+
+    type TransactionOutput {
+      number: Int
+      value: Float
+      addresses: [String]
     }
 `;
 

@@ -119,7 +119,6 @@ async function main() {
   // Setting to run again in 500ms until we get time to implement more sophisticated
   // logic
   setTimeout(main, 500);
-
 }
 
 export function start() {

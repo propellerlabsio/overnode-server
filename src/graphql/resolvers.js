@@ -43,6 +43,25 @@ const resolvers = {
     },
     node: () => status.rpc.info,
     peers: () => status.rpc.peers,
+    transaction: async (root, args) => {
+      const rawTx = await rpc('getrawtransaction', args.txid, 1);
+      return {
+        txid: rawTx.txid,
+        size: rawTx.size,
+        blockhash: rawTx.blockhash,
+        confirmations: rawTx.confirmation,
+        time: rawTx.time,
+        inputs: rawTx.vin.map(input => ({
+          txid: input.txid,
+          output_number: input.vout,
+        })),
+        outputs: rawTx.vout.map(output => ({
+          number: output.n,
+          addresses: output.scriptPubKey.addresses,
+          value: output.value,
+        })),
+      };
+    },
   },
 };
 
