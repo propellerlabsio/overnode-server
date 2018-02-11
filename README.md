@@ -1,11 +1,13 @@
 
 # Overnode
 
-Overnode is a Bitcoin full node monitoring and explorer (query) tool.  This project contains the server code which prodes a GraphQL interface for interacting with the node.  The overnode-client project contains one example UI that can be used with this server.
+Overnode is a Bitcoin full node monitoring and explorer (query) tool.  This project contains the server code which prodes a GraphQL interface for interacting with the node. 
+
+There is an example client / UI implementation written in VueJs which is hosted at [overnode.org](https://overnode.org).
 
 **WARNING:** 
 
-**This project is heavily under construction and not yet even in an alpha state.  Functionality is heavily undercooked and there may be serious outstanding security problems.  Do not run this code exposed to the internet**
+**This project is heavily under construction and in a beta state.  Some functionality is missing and there may be outstanding security flaws.  Do not run this code exposed to the internet with a bitcoin node containing a live, non-test wallet**
 
 ## Quick setup
 
