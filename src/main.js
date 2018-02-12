@@ -21,6 +21,8 @@ export const status = {
       txPerSecond: null,
       bytes: null,
     },
+    // ids only of connected peers
+    peerIds: []
   },
   rpc: {
     info: {},
@@ -46,6 +48,10 @@ async function main() {
   status.stats.height.bitcoind = status.rpc.info.blocks;
   status.stats.mempool.bytes = status.rpc.mempool.bytes;
   status.stats.mempool.txCount = status.rpc.mempool.size;
+
+  // Collect ids only of connected peers for broadcasting.  Client can detect
+  // changes and request new full peer list
+  status.stats.peerIds = status.rpc.peers.map(peer => peer.id);
 
   // Collect count of height value for peers
   const peerHeights = [];
