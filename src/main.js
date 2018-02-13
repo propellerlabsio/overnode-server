@@ -22,7 +22,7 @@ export const status = {
       bytes: null,
     },
     // ids only of connected peers
-    peerIds: []
+    peerIds: [],
   },
   rpc: {
     info: {},
