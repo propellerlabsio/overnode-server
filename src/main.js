@@ -1,3 +1,5 @@
+/* Allow console messages from this file only */
+/* eslint-disable no-console                  */
 import axios from 'axios';
 import { request as rpc } from './rpc';
 import { knex } from './knex';
@@ -75,7 +77,7 @@ async function checkPeerLocations() {
       }
     }
   } catch (err) {
-    console.log('Error checking peer location: ', err.message)
+    console.log('Error checking peer location: ', err.message);
   }
 
   // Check next peer in a second
