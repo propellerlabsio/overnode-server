@@ -19,21 +19,6 @@ exports.up = function (knex) {
       table.string('isp', 100);
       table.string('org', 100);
       table.string('as', 100);
-
-      // {
-      //   "country": "United States",
-      //   "countryCode": "US",
-      //   "region": "CA",
-      //   "regionName": "California",
-      //   "city": "San Francisco",
-      //   "zip": "94105",
-      //   "lat": "37.7898",
-      //   "lon": "-122.3942",
-      //   "timezone": "America\/Los_Angeles",
-      //   "isp": "Wikimedia Foundation",
-      //   "org": "Wikimedia Foundation",
-      //   "as": "AS14907 Wikimedia US network",
-      // }      
     });
 };
 
