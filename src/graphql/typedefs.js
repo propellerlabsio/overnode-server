@@ -78,6 +78,23 @@ const typeDefs = `
       error_message: String
     }
 
+    type Location {
+      address: String
+      country: String
+      country_code: String
+      region: String
+      region_name: String
+      city: String
+      zip: String
+      lat: Float
+      lon: Float
+      proxy: Boolean
+      timezone: String
+      isp: String
+      org: String
+      as: String
+    }
+
     type Peer {
       id: Int!
       addr: String!
@@ -100,6 +117,8 @@ const typeDefs = `
       synced_headers: Int!
       synced_blocks: Int!
       whitelisted: Boolean!
+      location_fetched: String
+      location: Location
     }
 
     type Query {
