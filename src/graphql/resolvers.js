@@ -59,6 +59,12 @@ const resolvers = {
     details: blockSummary =>
       resolvers.Query.block(blockSummary, { hash: blockSummary.hash }),
   },
+  Peer: {
+    location: async (peer) => {
+      const [location] = await knex('peer').where('address', peer.addr);
+      return location;
+    },
+  },
   Query: {
     block: (parent, { hash, height }) => rpc('getblock', hash || height.toString()),
     blocks(root, args) {

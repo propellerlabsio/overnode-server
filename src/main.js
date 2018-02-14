@@ -1,8 +1,12 @@
+/* Allow console messages from this file only */
+/* eslint-disable no-console                  */
+import axios from 'axios';
 import { request as rpc } from './rpc';
 import { knex } from './knex';
 import { collate } from './collate';
 
 let mempoolReadings = [];
+const peerLocationsChecked = [];
 
 // Keep this small as it is broadcast
 export const status = {
@@ -22,7 +26,7 @@ export const status = {
       bytes: null,
     },
     // ids only of connected peers
-    peerIds: []
+    peerIds: [],
   },
   rpc: {
     info: {},
@@ -30,6 +34,55 @@ export const status = {
     peers: [],
   },
 };
+
+/**
+ * Check we have peer geolocation and fetch if not
+ *
+ * Recursive routine that runs no more than once per second
+ * to avoid getting banned from geolocation service
+ */
+async function checkPeerLocations() {
+  try {
+    // Get first peer that we don't know if we have a location for it
+    const statusUnknown = status.rpc.peers.find(peer => !peerLocationsChecked.includes(peer.addr));
+    if (statusUnknown) {
+      // Don't check this peer again
+      peerLocationsChecked.push(statusUnknown.addr);
+
+      // See if we have location in database
+      const [dbResult] = await knex('peer').where('address', statusUnknown.addr);
+      if (!dbResult) {
+        // No existing record - ask geolocation service for address
+        const apiAddress = await axios.get(`http://ip-api.com/json/${statusUnknown.addr.split(':')[0]}`);
+        if (apiAddress.status === 200) {
+          const { data } = apiAddress;
+          await knex('peer').insert({
+            address: statusUnknown.addr,
+            location_fetched: new Date(),
+            country: data.country,
+            country_code: data.countryCode,
+            region: data.region,
+            region_name: data.regionName,
+            city: data.city,
+            zip: data.zip,
+            lat: data.lat,
+            lon: data.lon,
+            proxy: data.proxy,
+            timezone: data.timezone,
+            isp: data.isp,
+            org: data.org,
+            as: data.as,
+          });
+        }
+      }
+    }
+  } catch (err) {
+    console.log('Error checking peer location: ', err.message);
+  }
+
+  // Check next peer in a second
+  setTimeout(checkPeerLocations, 1000);
+}
 
 async function main() {
   // Get required data from bitcoind
@@ -128,5 +181,9 @@ async function main() {
 }
 
 export function start() {
+  // Main loop
   main();
+
+  // Check peer locations
+  checkPeerLocations();
 }
