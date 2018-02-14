@@ -1,14 +1,14 @@
 /* Allow console messages in this file: */
 /*   eslint-disable no-console          */
 import WebSocket from 'ws';
-import { status } from './main';
+import { liveData } from './main';
 
 const CONNECTION_OPEN = 1;
 let wss; // Websocket servr
 
 export async function broadcast() {
   try {
-    const outData = JSON.stringify(status.stats);
+    const outData = JSON.stringify(liveData.stats);
     wss.clients.forEach((client) => {
       if (client.readyState === CONNECTION_OPEN) {
         client.send(outData);

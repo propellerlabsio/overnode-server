@@ -1,7 +1,7 @@
 import os from 'os';
 import { request as rpc } from '../rpc';
 import { knex } from '../knex';
-import { status } from '../main';
+import { liveData } from '../main';
 
 const defaultResultCount = 15;
 const maxResultCount = 50;
@@ -71,7 +71,7 @@ const resolvers = {
       // Allow querying from height 0 (first block) even though in JavaScript zero is "falsey"
       let { fromHeight } = args;
       if (fromHeight !== 0 && !fromHeight) {
-        fromHeight = status.stats.height.overnode;
+        fromHeight = liveData.stats.height.overnode;
       }
 
       // Limit rows to be returned
@@ -99,9 +99,9 @@ const resolvers = {
       }
       return query;
     },
-    node: () => status.rpc.info,
-    peer: (root, { id }) => status.rpc.peers.find(peer => peer.id === id),
-    peers: () => status.rpc.peers,
+    node: () => liveData.rpc.info,
+    peer: (root, { id }) => liveData.rpc.peers.find(peer => peer.id === id),
+    peers: () => liveData.rpc.peers,
     transaction: async (root, args) => {
       const rawTx = await rpc('getrawtransaction', args.txid, 1);
       return {

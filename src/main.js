@@ -9,7 +9,7 @@ let mempoolReadings = [];
 const peerLocationsChecked = [];
 
 // Keep this small as it is broadcast
-export const status = {
+export const liveData = {
   // Keep following property small -data gets broadcast every second to
   // all connected clients
   stats: {
@@ -44,7 +44,8 @@ export const status = {
 async function checkPeerLocations() {
   try {
     // Get first peer that we don't know if we have a location for it
-    const statusUnknown = status.rpc.peers.find(peer => !peerLocationsChecked.includes(peer.addr));
+    const statusUnknown = liveData.rpc.peers
+      .find(peer => !peerLocationsChecked.includes(peer.addr));
     if (statusUnknown) {
       // Don't check this peer again
       peerLocationsChecked.push(statusUnknown.addr);
@@ -86,29 +87,29 @@ async function checkPeerLocations() {
 
 async function main() {
   // Get required data from bitcoind
-  status.rpc.info = await rpc('getinfo');
-  status.rpc.mempool = await rpc('getmempoolinfo');
-  status.rpc.peers = await rpc('getpeerinfo');
+  liveData.rpc.info = await rpc('getinfo');
+  liveData.rpc.mempool = await rpc('getmempoolinfo');
+  liveData.rpc.peers = await rpc('getpeerinfo');
 
   // Set server time for data age
-  status.stats.time = new Date();
+  liveData.stats.time = new Date();
 
   // Get number of jobs in error
   const [{ count }] = await knex('job').count('id').whereNotNull('error_message');
-  status.stats.jobsInErrorCount = Number(count);
+  liveData.stats.jobsInErrorCount = Number(count);
 
   // Keep core status information in importable variable for other processes
-  status.stats.height.bitcoind = status.rpc.info.blocks;
-  status.stats.mempool.bytes = status.rpc.mempool.bytes;
-  status.stats.mempool.txCount = status.rpc.mempool.size;
+  liveData.stats.height.bitcoind = liveData.rpc.info.blocks;
+  liveData.stats.mempool.bytes = liveData.rpc.mempool.bytes;
+  liveData.stats.mempool.txCount = liveData.rpc.mempool.size;
 
   // Collect ids only of connected peers for broadcasting.  Client can detect
   // changes and request new full peer list
-  status.stats.peerIds = status.rpc.peers.map(peer => peer.id);
+  liveData.stats.peerIds = liveData.rpc.peers.map(peer => peer.id);
 
   // Collect count of height value for peers
   const peerHeights = [];
-  status.rpc.peers.forEach((peer) => {
+  liveData.rpc.peers.forEach((peer) => {
     const index = peerHeights
       .findIndex(rec => rec.height === peer.synced_blocks);
     if (index < 0) {
@@ -120,18 +121,18 @@ async function main() {
 
   // Get most common peer height
   const [commonHeight] = peerHeights.sort((a, b) => a.count < b.count);
-  status.stats.height.peers = commonHeight ? commonHeight.height : 0;
+  liveData.stats.height.peers = commonHeight ? commonHeight.height : 0;
 
   // Get the highest block we have fully synced to the database
   const [{ min }] = await knex('job').min('height').select();
-  status.stats.height.overnode = min;
+  liveData.stats.height.overnode = min;
 
   // If database is behind bitcoind, trigger collate job
-  if (status.stats.height.bitcoind > status.stats.height.overnode) {
-    const fromHeight = status.stats.height.overnode;
+  if (liveData.stats.height.bitcoind > liveData.stats.height.overnode) {
+    const fromHeight = liveData.stats.height.overnode;
     let toHeight = fromHeight + Number(process.env.COLLATION_JOB_CHUNK_SIZE);
-    if (toHeight > status.stats.height.bitcoind) {
-      toHeight = status.stats.height.bitcoind;
+    if (toHeight > liveData.stats.height.bitcoind) {
+      toHeight = liveData.stats.height.bitcoind;
     }
     await collate(fromHeight, toHeight);
   }
@@ -141,19 +142,19 @@ async function main() {
   let timeSinceLastStored = 0;
   if (mempoolReadings.length) {
     latestReading = mempoolReadings[mempoolReadings.length - 1];
-    timeSinceLastStored = status.stats.time - latestReading.time;
+    timeSinceLastStored = liveData.stats.time - latestReading.time;
   }
   if (!mempoolReadings.length || timeSinceLastStored >= 1000) {
     mempoolReadings.push({
-      time: status.stats.time,
-      height: status.rpc.info.blocks,
-      txCount: status.rpc.mempool.size,
+      time: liveData.stats.time,
+      height: liveData.rpc.info.blocks,
+      txCount: liveData.rpc.mempool.size,
     });
   }
 
   // Remove any mempool readings from earlier blocks since we can't compare the txCount
   const readingsThisHeight = mempoolReadings
-    .filter(reading => reading.height === status.rpc.info.blocks);
+    .filter(reading => reading.height === liveData.rpc.info.blocks);
   mempoolReadings = readingsThisHeight;
 
   // Need at least two readings to calculate
@@ -162,10 +163,10 @@ async function main() {
     latestReading = mempoolReadings[mempoolReadings.length - 1];
     const elapsedSeconds = (latestReading.time - earliestReading.time) / 1000;
     const transactionCount = latestReading.txCount - earliestReading.txCount;
-    status.stats.mempool.txPerSecond = transactionCount / elapsedSeconds;
+    liveData.stats.mempool.txPerSecond = transactionCount / elapsedSeconds;
   } else {
     // Reset until we get at least two readings in same block
-    status.stats.mempool.txPerSecond = 0;
+    liveData.stats.mempool.txPerSecond = 0;
   }
 
   // Only keep 60 mempool readings
