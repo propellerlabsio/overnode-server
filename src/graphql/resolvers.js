@@ -94,6 +94,7 @@ const resolvers = {
       return query;
     },
     node: () => status.rpc.info,
+    peer: (root, { id }) => status.rpc.peers.find(peer => peer.id === id),
     peers: () => status.rpc.peers,
     transaction: async (root, args) => {
       const rawTx = await rpc('getrawtransaction', args.txid, 1);

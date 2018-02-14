@@ -113,6 +113,8 @@ const typeDefs = `
 
         jobs(onlyJobsInError: Boolean): [Job]
 
+        peer(id: Int!): Peer
+
         peers: [Peer]
 
         transaction(txid: String!): Transaction
