@@ -71,7 +71,7 @@ const resolvers = {
       // Allow querying from height 0 (first block) even though in JavaScript zero is "falsey"
       let { fromHeight } = args;
       if (fromHeight !== 0 && !fromHeight) {
-        fromHeight = liveData.stats.height.overnode;
+        fromHeight = liveData.broadcast.height.overnode;
       }
 
       // Limit rows to be returned

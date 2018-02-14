@@ -8,7 +8,9 @@ let wss; // Websocket servr
 
 export async function broadcast() {
   try {
-    const outData = JSON.stringify(liveData.stats);
+    const outData = JSON.stringify({
+      liveData: liveData.broadcast,
+    });
     wss.clients.forEach((client) => {
       if (client.readyState === CONNECTION_OPEN) {
         client.send(outData);

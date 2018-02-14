@@ -6,13 +6,14 @@ import { knex } from './knex';
 import { collate } from './collate';
 
 let mempoolReadings = [];
+let lastRpcPeers = [];
 const peerLocationsChecked = [];
 
 // Keep this small as it is broadcast
 export const liveData = {
-  // Keep following property small -data gets broadcast every second to
-  // all connected clients
-  stats: {
+  // Keep following property as small as possible because everything
+  // in it will get broadcast every second to all connected clients
+  broadcast: {
     time: null,
     jobsInErrorCount: 0,
     height: {
@@ -25,8 +26,9 @@ export const liveData = {
       txPerSecond: null,
       bytes: null,
     },
-    // ids only of connected peers
-    peerIds: [],
+    // Limited peer information including peer id and new bytesrecv or bytesent
+    // figures but only if they have changed. Need to keep broadcast data light
+    peers: [],
   },
   rpc: {
     info: {},
@@ -92,20 +94,41 @@ async function main() {
   liveData.rpc.peers = await rpc('getpeerinfo');
 
   // Set server time for data age
-  liveData.stats.time = new Date();
+  liveData.broadcast.time = new Date();
 
   // Get number of jobs in error
   const [{ count }] = await knex('job').count('id').whereNotNull('error_message');
-  liveData.stats.jobsInErrorCount = Number(count);
+  liveData.broadcast.jobsInErrorCount = Number(count);
 
   // Keep core status information in importable variable for other processes
-  liveData.stats.height.bitcoind = liveData.rpc.info.blocks;
-  liveData.stats.mempool.bytes = liveData.rpc.mempool.bytes;
-  liveData.stats.mempool.txCount = liveData.rpc.mempool.size;
+  liveData.broadcast.height.bitcoind = liveData.rpc.info.blocks;
+  liveData.broadcast.mempool.bytes = liveData.rpc.mempool.bytes;
+  liveData.broadcast.mempool.txCount = liveData.rpc.mempool.size;
 
-  // Collect ids only of connected peers for broadcasting.  Client can detect
-  // changes and request new full peer list
-  liveData.stats.peerIds = liveData.rpc.peers.map(peer => peer.id);
+  // Collect connected peers data for broadcasting.  Client can detect
+  // changes and request new full peer list or single peer via graphql
+  // where appropriate so keep this data limited for performance.
+  liveData.broadcast.peers = liveData.rpc.peers.map((peer) => {
+    const broadcastPeer = {
+      id: peer.id,
+    };
+
+    // Lookup old peer data
+    const oldPeer = lastRpcPeers.find(old => old.id === peer.id);
+    if (oldPeer) {
+      // Broadcast bytesrecv but only if it has changed
+      if (oldPeer.bytesrecv !== peer.bytesrecv) {
+        broadcastPeer.bytesrecv = peer.bytesrecv;
+      }
+
+      // Broadcast bytessent but only if it has changed
+      if (oldPeer.bytessent !== peer.bytessent) {
+        broadcastPeer.bytessent = peer.bytessent;
+      }
+    }
+
+    return broadcastPeer;
+  });
 
   // Collect count of height value for peers
   const peerHeights = [];
@@ -121,18 +144,18 @@ async function main() {
 
   // Get most common peer height
   const [commonHeight] = peerHeights.sort((a, b) => a.count < b.count);
-  liveData.stats.height.peers = commonHeight ? commonHeight.height : 0;
+  liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
 
   // Get the highest block we have fully synced to the database
   const [{ min }] = await knex('job').min('height').select();
-  liveData.stats.height.overnode = min;
+  liveData.broadcast.height.overnode = min;
 
   // If database is behind bitcoind, trigger collate job
-  if (liveData.stats.height.bitcoind > liveData.stats.height.overnode) {
-    const fromHeight = liveData.stats.height.overnode;
+  if (liveData.broadcast.height.bitcoind > liveData.broadcast.height.overnode) {
+    const fromHeight = liveData.broadcast.height.overnode;
     let toHeight = fromHeight + Number(process.env.COLLATION_JOB_CHUNK_SIZE);
-    if (toHeight > liveData.stats.height.bitcoind) {
-      toHeight = liveData.stats.height.bitcoind;
+    if (toHeight > liveData.broadcast.height.bitcoind) {
+      toHeight = liveData.broadcast.height.bitcoind;
     }
     await collate(fromHeight, toHeight);
   }
@@ -142,11 +165,11 @@ async function main() {
   let timeSinceLastStored = 0;
   if (mempoolReadings.length) {
     latestReading = mempoolReadings[mempoolReadings.length - 1];
-    timeSinceLastStored = liveData.stats.time - latestReading.time;
+    timeSinceLastStored = liveData.broadcast.time - latestReading.time;
   }
   if (!mempoolReadings.length || timeSinceLastStored >= 1000) {
     mempoolReadings.push({
-      time: liveData.stats.time,
+      time: liveData.broadcast.time,
       height: liveData.rpc.info.blocks,
       txCount: liveData.rpc.mempool.size,
     });
@@ -163,16 +186,19 @@ async function main() {
     latestReading = mempoolReadings[mempoolReadings.length - 1];
     const elapsedSeconds = (latestReading.time - earliestReading.time) / 1000;
     const transactionCount = latestReading.txCount - earliestReading.txCount;
-    liveData.stats.mempool.txPerSecond = transactionCount / elapsedSeconds;
+    liveData.broadcast.mempool.txPerSecond = transactionCount / elapsedSeconds;
   } else {
     // Reset until we get at least two readings in same block
-    liveData.stats.mempool.txPerSecond = 0;
+    liveData.broadcast.mempool.txPerSecond = 0;
   }
 
   // Only keep 60 mempool readings
   if (mempoolReadings.length > 59) {
     mempoolReadings.shift();
   }
+
+  // Remember current peers data so next loop we can compare
+  lastRpcPeers = liveData.rpc.peers.slice();
 
   // Try to run this loop no more often than once every second or so.  More frequent
   // isn't helpful and maxes out CPU.  Need to allow for logic execution above.
