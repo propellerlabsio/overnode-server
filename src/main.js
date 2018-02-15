@@ -130,25 +130,29 @@ async function main() {
     return broadcastPeer;
   });
 
-  // Collect count of height value for peers
-  const peerHeights = [];
-  liveData.rpc.peers.forEach((peer) => {
-    const index = peerHeights
-      .findIndex(rec => rec.height === peer.synced_blocks);
-    if (index < 0) {
-      peerHeights.push({ height: peer.synced_blocks, count: 1 });
-    } else {
-      peerHeights[index].count++;
-    }
-  });
-
-  // Get most common peer height
-  const [commonHeight] = peerHeights.sort((a, b) => a.count < b.count);
-  liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
-
   // Get the highest block we have fully synced to the database
   const [{ min }] = await knex('job').min('height').select();
   liveData.broadcast.height.overnode = min;
+
+  // Collect count of block height value for peers
+  // Ingore those where peer does not provide a valid value - ie -1
+  const peerHeights = [];
+  liveData.rpc.peers
+    .filter(peer => peer.synced_blocks > -1)
+    .forEach((peer) => {
+      const index = peerHeights
+        .findIndex(rec => rec.height === peer.synced_blocks);
+      if (index < 0) {
+        peerHeights.push({ height: peer.synced_blocks, count: 1 });
+      } else {
+        peerHeights[index].count++;
+      }
+    });
+
+  // Get most common peer height at or above our height
+  const [commonHeight] = peerHeights.sort((a, b) => a.count < b.count);
+  liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
+
 
   // If database is behind bitcoind, trigger collate job
   if (liveData.broadcast.height.bitcoind > liveData.broadcast.height.overnode) {
