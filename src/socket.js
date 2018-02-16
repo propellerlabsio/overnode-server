@@ -24,6 +24,10 @@ export async function broadcast() {
   setTimeout(broadcast, 1000);
 }
 
+export function clientCount() {
+  return wss.clients.size;
+}
+
 export default function start(server) {
   wss = new WebSocket.Server({ server });
 

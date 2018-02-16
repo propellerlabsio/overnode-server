@@ -4,6 +4,7 @@ import axios from 'axios';
 import { request as rpc } from './rpc';
 import { knex } from './knex';
 import { collate } from './collate';
+import { clientCount } from './socket';
 
 let mempoolReadings = [];
 let lastRpcPeers = [];
@@ -25,6 +26,9 @@ export const liveData = {
       txCount: null,
       txPerSecond: null,
       bytes: null,
+    },
+    overnode: {
+      clientCount: 0,
     },
     // Limited peer information including peer id and new bytesrecv or bytesent
     // figures but only if they have changed. Need to keep broadcast data light
@@ -203,6 +207,9 @@ async function main() {
 
   // Remember current peers data so next loop we can compare
   lastRpcPeers = liveData.rpc.peers.slice();
+
+  // Update number of overnode clients currently connected
+  liveData.broadcast.overnode.clients = clientCount();
 
   // Try to run this loop no more often than once every second or so.  More frequent
   // isn't helpful and maxes out CPU.  Need to allow for logic execution above.
