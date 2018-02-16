@@ -99,7 +99,7 @@ const typeDefs = `
     type Peer {
       id: Int!
       addr: String!
-      addrlocal: String!
+      addrlocal: String
       services: String!
       relaytxes: Boolean!
       lastsend: Int!
