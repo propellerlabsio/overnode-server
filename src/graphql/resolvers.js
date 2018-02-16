@@ -91,6 +91,7 @@ const resolvers = {
       platform: os.platform(),
       cpus: os.cpus(),
       totalmem: os.totalmem(),
+      donation_address: process.env.DONATION_ADDRESS,
     }),
     jobs: (root, args) => {
       let query = knex('job').select();

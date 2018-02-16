@@ -47,6 +47,7 @@ const typeDefs = `
       platform: String!
       cpus: [CPU]
       totalmem: Float!
+      donation_address: String
     }
 
     type Node {
