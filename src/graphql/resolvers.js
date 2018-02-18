@@ -2,28 +2,14 @@ import os from 'os';
 import { request as rpc } from '../rpc';
 import { knex } from '../knex';
 import { liveData } from '../main';
+import blocks from '../api/blocks';
 
 const defaultResultCount = 15;
 const maxResultCount = 50;
 
 const resolvers = {
   Block: {
-    // eslint-disable-next-line arrow-body-style
-    nextblock: (block) => {
-      return block.nextblockhash ?
-        resolvers.Query.block(block, { hash: block.nextblockhash }) :
-        null;
-    },
-    // eslint-disable-next-line arrow-body-style
-    previousblock: (block) => {
-      return block.previousblockhash ?
-        resolvers.Query.block(block, { hash: block.previousblockhash }) :
-        null;
-    },
-    async summary(block) {
-      const [summary] = await knex('block').where('hash', block.hash);
-      return summary;
-    },
+    summary: ({ hash }) => blocks.summary.get({ hash }),
     async transactions(block, args) {
       const transactions = [];
       if (block.height === 0) {
@@ -56,8 +42,7 @@ const resolvers = {
     },
   },
   BlockSummary: {
-    details: blockSummary =>
-      resolvers.Query.block(blockSummary, { hash: blockSummary.hash }),
+    details: ({ hash }) => blocks.detail.get({ hash }),
   },
   Peer: {
     location: async (peer) => {
@@ -66,26 +51,8 @@ const resolvers = {
     },
   },
   Query: {
-    block: (parent, { hash, height }) => rpc('getblock', hash || height.toString()),
-    blocks(root, args) {
-      // Allow querying from height 0 (first block) even though in JavaScript zero is "falsey"
-      let { fromHeight } = args;
-      if (fromHeight !== 0 && !fromHeight) {
-        fromHeight = liveData.broadcast.height.overnode;
-      }
-
-      // Limit rows to be returned
-      const limit = args.limit || defaultResultCount;
-      if (limit > maxResultCount) {
-        throw new Error(`Please limit your query to ${maxResultCount} results.`);
-      }
-
-      // Return query promise
-      return knex('block')
-        .where('height', '<=', fromHeight)
-        .orderBy('height', 'desc')
-        .limit(limit);
-    },
+    block: (root, args) => blocks.detail.get(args),
+    blocks: (root, args) => blocks.summary.find(args),
     host: () => ({
       hostname: os.hostname(),
       platform: os.platform(),

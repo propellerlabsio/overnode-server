@@ -22,9 +22,7 @@ const typeDefs = `
       difficulty: Float!
       chainwork: String!
       previousblockhash: String
-      previousblock: Block
       nextblockhash: String
-      nextblock: Block
     }
 
     type BlockSummary {
