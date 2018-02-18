@@ -1,8 +1,10 @@
-import os from 'os';
 import { request as rpc } from '../rpc';
 import { knex } from '../knex';
 import { liveData } from '../main';
 import blocks from '../api/blocks';
+import host from '../api/host';
+import node from '../api/node';
+import peers from '../api/peers';
 
 const defaultResultCount = 15;
 const maxResultCount = 50;
@@ -45,21 +47,12 @@ const resolvers = {
     details: ({ hash }) => blocks.detail.get({ hash }),
   },
   Peer: {
-    location: async (peer) => {
-      const [location] = await knex('peer').where('address', peer.addr);
-      return location;
-    },
+    location: peers.location,
   },
   Query: {
     block: (root, args) => blocks.detail.get(args),
     blocks: (root, args) => blocks.summary.find(args),
-    host: () => ({
-      hostname: os.hostname(),
-      platform: os.platform(),
-      cpus: os.cpus(),
-      totalmem: os.totalmem(),
-      donation_address: process.env.DONATION_ADDRESS,
-    }),
+    host: () => host.get(),
     jobs: (root, args) => {
       let query = knex('job').select();
       if (args.onlyJobsInError) {
@@ -67,9 +60,9 @@ const resolvers = {
       }
       return query;
     },
-    node: () => liveData.rpc.info,
-    peer: (root, { id }) => liveData.rpc.peers.find(peer => peer.id === id),
-    peers: () => liveData.rpc.peers,
+    node: node.get,
+    peer: (root, args) => peers.get(args),
+    peers: (root, args) => peers.find(args),
     transaction: async (root, args) => {
       const rawTx = await rpc('getrawtransaction', args.txid, 1);
       return {
