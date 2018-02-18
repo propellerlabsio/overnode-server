@@ -17,4 +17,4 @@ All methods should take an object as the first argument and destructure the para
   }
 ```
 
-This is to allow us to pass through requests from GraphQL a minimal amount of argument transformation boilerplate.
+This is to allow us to pass through requests from GraphQL with a minimal amount of argument transformation boilerplate.

@@ -3,6 +3,7 @@ import { knex } from '../knex';
 import { liveData } from '../main';
 import blocks from '../api/blocks';
 import host from '../api/host';
+import jobs from '../api/jobs';
 import node from '../api/node';
 import peers from '../api/peers';
 
@@ -52,15 +53,9 @@ const resolvers = {
   Query: {
     block: (root, args) => blocks.detail.get(args),
     blocks: (root, args) => blocks.summary.find(args),
-    host: () => host.get(),
-    jobs: (root, args) => {
-      let query = knex('job').select();
-      if (args.onlyJobsInError) {
-        query = query.whereNotNull('error_message');
-      }
-      return query;
-    },
-    node: node.get,
+    host: (root, args) => host.get(args),
+    jobs: (root, args) => jobs.find(args),
+    node: (root, args) => node.get(args),
     peer: (root, args) => peers.get(args),
     peers: (root, args) => peers.find(args),
     transaction: async (root, args) => {
