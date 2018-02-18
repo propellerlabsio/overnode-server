@@ -1,6 +1,6 @@
 import { knex } from '../knex';
 
-const peers = {
+const jobs = {
   find: ({ onlyJobsInError }) => {
     let query = knex('job').select();
     if (onlyJobsInError) {
@@ -10,4 +10,4 @@ const peers = {
   },
 };
 
-export default peers;
+export default jobs;

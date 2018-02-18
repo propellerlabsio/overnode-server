@@ -1,6 +1,6 @@
 # API conventions
 
-## Naming conventions
+## Generic method naming conventions
 
 | Method | Purpose |
 | ------ | --------|
