@@ -7,7 +7,6 @@ import transactions from '../api/transactions';
 
 const resolvers = {
   Block: {
-    summary: block => blocks.summary.get(block),
     transactions: (block, args) => transactions.forBlock({
       block,
       fromIndex: args.fromIndex,

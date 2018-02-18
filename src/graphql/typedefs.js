@@ -13,12 +13,13 @@ const typeDefs = `
       version: Int!
       versionHex: String!
       merkleroot: String!
-      summary: BlockSummary
       transactions(fromIndex: Int = 0, limit: Int): [Transaction]
       time: Int!
       mediantime: Int!
       nonce: Float!
       bits: String!
+      interval: Int!
+      tx_count: Int!
       difficulty: Float!
       chainwork: String!
       previousblockhash: String

@@ -5,7 +5,17 @@ import limits from './limits';
 
 const blocks = {
   detail: {
-    get: async ({ hash, height }) => rpc('getblock', hash || height.toString()),
+    get: async ({ hash, height }) => {
+      // Get block data from database and bitcoin daemon asyncronously
+      // but wait until we have both bits of data before proceeding
+      const [blockRpc, blockDb] = await Promise.all([
+        rpc('getblock', hash || height.toString()),
+        blocks.summary.get({ hash, height }),
+      ]);
+
+      // Return merged fields from bitcoin daemon and database
+      return Object.assign(blockRpc, blockDb);
+    },
   },
   summary: {
     get: async ({ hash, height }) => {
