@@ -13,9 +13,6 @@ const resolvers = {
       limit: args.limit,
     }),
   },
-  BlockSummary: {
-    details: blockSummary => blocks.detail.get(blockSummary),
-  },
   Peer: {
     location: peer => peers.location(peer),
   },

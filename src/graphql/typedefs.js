@@ -33,7 +33,6 @@ const typeDefs = `
       time: Int!
       tx_count: Int!
       interval: Int!
-      details: Block
     }
 
     type CPU {
