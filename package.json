@@ -25,7 +25,8 @@
   "scripts": {
     "build": "babel src -d dist --copy-files",
     "dev": "npm run build && node index",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postversion": "git push && git push --tags"    
   },
   "author": "Peter Roehlen, propellerlabs.com",
   "license": "MIT"

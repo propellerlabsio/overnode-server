@@ -1,5 +1,7 @@
 import os from 'os';
 
+const packageJson = require('../../package.json');
+
 const host = {
   get: () => ({
     hostname: os.hostname(),
@@ -7,6 +9,7 @@ const host = {
     cpus: os.cpus(),
     totalmem: os.totalmem(),
     donation_address: process.env.DONATION_ADDRESS,
+    overnode_version: packageJson.version,
   }),
 };
 
