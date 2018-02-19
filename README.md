@@ -34,10 +34,11 @@ npm run build
 
 ## Deploying
 
-Prior to deploying, on your development machine, run `npm version patch` to increment the server version which will:
+Prior to deploying, on your development machine, run `npm version patch` to:
 
 1. Increment the package version in `package.json`.
 2. Commit and push the new version to Github.
+3. Publish the new release.
 
 This will allow the client to know a refresh is required.
 
