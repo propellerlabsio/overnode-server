@@ -1,6 +1,6 @@
 {
   "name": "overnode-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Overnode Server",
   "main": "index.js",
   "dependencies": {
@@ -26,7 +26,7 @@
     "build": "babel src -d dist --copy-files",
     "dev": "npm run build && node index",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postversion": "git push && git push --tags"    
+    "postversion": "git push && git push --tags"
   },
   "author": "Peter Roehlen, propellerlabs.com",
   "license": "MIT"
