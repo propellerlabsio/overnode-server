@@ -50,34 +50,40 @@ const jobs = {
    * Execute a given job with a given block
    */
   execute: async ({ functionName, block }) => {
-    let job = await jobs.get({ functionName });
-    try {
-      if (job.height + 1 === block.height && job.error_height === null) {
-        job = await functions[job.function_name](job, block);
+    const job = await jobs.get({ functionName });
+
+    return knex.transaction(async (knexTransaction) => {
+      try {
+        if (job.height + 1 === block.height && job.error_height === null) {
+          await functions[job.function_name](block, knexTransaction);
+          await jobs.update({
+            functionName,
+            height: block.height,
+            knexTransaction,
+          });
+          await knexTransaction.commit();
+        }
+      } catch (err) {
+        await knexTransaction.rollback();
+        await jobs.update({
+          functionName,
+          errorHeight: block.height,
+          errorMessage: err.message,
+        });
+
+        // eslint-disable-next-line no-console
+        console.error(`Job '${job.function_name}' failed with error: ${err.message}`);
+
+        // Rethrow error to caller
+        throw err;
       }
-      await jobs.update({
-        functionName,
-        height: job.height,
-      });
-    } catch (err) {
-      await jobs.update({
-        functionName,
-        errorHeight: block.height,
-        errorMessage: err.message,
-      });
-
-      // eslint-disable-next-line no-console
-      console.error(`Job '${job.function_name}' failed with error: ${err.message}`);
-
-      // Rethrow error to caller
-      throw err;
-    }
+    });
   },
 
   /**
    * Update job details in the database
    */
-  update: ({ functionName, height, errorHeight, errorMessage }) => {
+  update: ({ functionName, height, errorHeight, errorMessage, knexTransaction }) => {
     const update = {};
     if (height) {
       update.height = height;
@@ -88,9 +94,11 @@ const jobs = {
       update.error_message = errorMessage;
     }
 
+    // Do update
     return knex('job')
       .where('function_name', functionName)
-      .update(update);
+      .update(update)
+      .transacting(knexTransaction);
   },
 
   /**
@@ -98,7 +106,7 @@ const jobs = {
    */
   process: async ({ fromHeight, toHeight }) => {
     try {
-      // For each blockin range
+      // For each block in range
       for (let height = fromHeight; height <= toHeight; height++) {
         // Get block.
         const block = await rpc('getblock', height.toString());

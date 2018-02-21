@@ -5,20 +5,25 @@
 import blocks from '../blocks';
 import { knex } from '../../knex';
 
-
-export default async function populate_block_table(job, block) {
-  const updatedJob = Object.assign({}, job);
+/**
+ * Populates the database table 'block' with details of the provided block
+ *
+ * @param {*} block           Full block details provided by bitcoind
+ * @param {*} knexTransaction knexTransaction object for db consistency
+ */
+export default async function populate_block_table(block, knexTransaction) {
+  // Determine value of calculated field: time interval between this block and the last
   let interval = 0;
-  let lastBlock;
   if (block.height > 0) {
     const lastBlockHeight = block.height - 1;
-    lastBlock = await blocks.summary.get({ height: lastBlockHeight });
+    const lastBlock = await blocks.summary.get({ height: lastBlockHeight });
     if (!lastBlock) {
       throw new Error(`Can't find previous block ${lastBlockHeight} in database`);
     }
     interval = block.time - lastBlock.time;
   }
 
+  // Insert block into database using provided transaction
   await knex('block').insert({
     hash: block.hash,
     size: block.size,
@@ -26,8 +31,5 @@ export default async function populate_block_table(job, block) {
     time: block.time,
     interval,
     tx_count: block.tx.length,
-  });
-  updatedJob.height = block.height;
-
-  return updatedJob;
+  }).transacting(knexTransaction);
 }
