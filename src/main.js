@@ -17,6 +17,10 @@ export const liveData = {
   broadcast: {
     time: null,
     jobsInErrorCount: 0,
+
+    // Server is prioritzing a long-running job; live data will not change until finished
+    prioritySyncing: false,
+
     height: {
       bitcoind: null,
       overnode: null,
@@ -157,16 +161,30 @@ async function main() {
   const [commonHeight] = peerHeights.sort((a, b) => a.count < b.count);
   liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
 
-  // If database is behind bitcoind, trigger collate jobs unless we
+  // If database is behind bitcoind, trigger sync jobs unless we
   // are in an error state.
   if (!liveData.broadcast.jobsInErrorCount) {
     if (liveData.broadcast.height.bitcoind > liveData.broadcast.height.overnode) {
-      const fromHeight = liveData.broadcast.height.overnode + 1;
-      let toHeight = fromHeight + Number(process.env.COLLATION_JOB_CHUNK_SIZE) - 1;
-      if (toHeight > liveData.broadcast.height.bitcoind) {
-        toHeight = liveData.broadcast.height.bitcoind;
+      // If we are very far behind, go into "prioritySyncing" mode where we continually
+      // process blocks until we are caught up and all other services will be degraded.
+      const behindBy = liveData.broadcast.height.bitcoind - liveData.broadcast.height.overnode;
+      if (behindBy > 6) {
+        // Signal clients that we are in priortySyncing mode
+        liveData.broadcast.prioritySyncing = true;
+
+        // Process all blocks that we haven't yet synced
+        const fromHeight = liveData.broadcast.height.overnode + 1;
+        const toHeight = liveData.broadcast.height.bitcoind;
+        await jobs.process({ fromHeight, toHeight });
+
+        // Signal to clients that prioritySyncing has finished
+        liveData.broadcast.prioritySyncing = false;
+      } else {
+        // Regular processing, only one block at a time
+        const fromHeight = liveData.broadcast.height.overnode + 1;
+        const toHeight = fromHeight + 1;
+        await jobs.process({ fromHeight, toHeight });
       }
-      await jobs.process({ fromHeight, toHeight });
     }
   }
 
