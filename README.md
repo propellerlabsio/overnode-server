@@ -96,6 +96,10 @@ Set to `on` to make GraphiQL (A graphical interactive in-browser GraphQL IDE) av
 
 A collation job grabs data from the blockchain and summarizes, transposes or otherwise collates it into postgres tables for high performance retrieval and serving to clients.  This parameter determines how many blocks should be processed at a single time.  Higher values will slow down any other processing including serving live data through the websocket.  Lower values will increase the amount of time it takes to sync the database with the bitcoin node.
 
+For live upgrades where you want users to continue to use the system while jobs are running, set this to a low value - maybe 100;
+
+For faster upgrades where you don't care about the impact on users, set this to a higher value, e.g. 1000+.
+
 #### DONATION_ADDRESS
 
 If you would like to receive donations for hosting this service, put your Bitcoin address here.

@@ -4,8 +4,9 @@
 /* Ignore await in loop - deliberate synchronous job processing.              */
 /* eslint-disable no-await-in-loop                                            */
 
-import { request as rpc } from '../../rpc';
+import blocks from '../blocks';
 import { knex } from '../../knex';
+
 
 export default async function populate_block_table(job, block) {
   const updatedJob = Object.assign({}, job);
@@ -13,9 +14,10 @@ export default async function populate_block_table(job, block) {
   let lastBlock;
   if (block.height > 0) {
     const lastBlockHeight = block.height - 1;
-    lastBlock = await rpc('getblock', lastBlockHeight.toString());
-  }
-  if (lastBlock) {
+    lastBlock = await blocks.summary.get({ height: lastBlockHeight });
+    if (!lastBlock) {
+      throw new Error(`Can't find previous block ${lastBlockHeight} in database`);
+    }
     interval = block.time - lastBlock.time;
   }
 
