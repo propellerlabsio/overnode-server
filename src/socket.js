@@ -32,9 +32,9 @@ export default function start(server) {
   wss = new WebSocket.Server({ server });
 
   wss.on('connection', (ws) => {
-    ws.on('message', (message) => {
-      console.log('received: %s', message);
-    });
+    // ws.on('message', (message) => {
+    //   console.log('received: %s', message);
+    // });
 
     ws.on('error', (err) => {
       if (err.code && err.code === 'ECONNRESET') {

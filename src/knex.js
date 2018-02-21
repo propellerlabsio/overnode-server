@@ -1,3 +1,7 @@
+/* Allow console commands.  Code in this file is run once on server startup   */
+/* and it is useful to quickly identify that the connection has been made.    */
+/* eslint-disable no-console                                                  */
+
 // Create knex instance for interacting with postgres database
 console.log('Connecting to: ', process.env.PG_CONNECTION_STRING);
 const knex = require('knex')({

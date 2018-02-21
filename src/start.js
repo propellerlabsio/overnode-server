@@ -9,7 +9,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import { knex } from './knex';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
-import { resetJobErrors } from './collate';
+import jobs from './api/jobs';
 import socket from './socket';
 import * as rpc from './rpc';
 import { start as startMain } from './main';
@@ -70,7 +70,7 @@ knex
     console.log(`Running a GraphQL API server at localhost:${htmlPort}/graphql`);
 
     // Reset any job errors and then kick off collate job(s)
-    await resetJobErrors();
+    await jobs.resetErrors();
 
     // Start websockets server for handling live data feeds
     socket(expressServer);

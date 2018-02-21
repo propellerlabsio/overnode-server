@@ -3,7 +3,7 @@
 import axios from 'axios';
 import { request as rpc } from './rpc';
 import { knex } from './knex';
-import { collate } from './collate';
+import jobs from './api/jobs';
 import { clientCount } from './socket';
 
 let mempoolReadings = [];
@@ -101,7 +101,7 @@ async function main() {
   liveData.broadcast.time = new Date();
 
   // Get number of jobs in error
-  const [{ count }] = await knex('job').count('id').whereNotNull('error_message');
+  const [{ count }] = await knex('job').count('function_name').whereNotNull('error_message');
   liveData.broadcast.jobsInErrorCount = Number(count);
 
   // Keep core status information in importable variable for other processes
@@ -157,15 +157,17 @@ async function main() {
   const [commonHeight] = peerHeights.sort((a, b) => a.count < b.count);
   liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
 
-
-  // If database is behind bitcoind, trigger collate job
-  if (liveData.broadcast.height.bitcoind > liveData.broadcast.height.overnode) {
-    const fromHeight = liveData.broadcast.height.overnode;
-    let toHeight = fromHeight + Number(process.env.COLLATION_JOB_CHUNK_SIZE);
-    if (toHeight > liveData.broadcast.height.bitcoind) {
-      toHeight = liveData.broadcast.height.bitcoind;
+  // If database is behind bitcoind, trigger collate jobs unless we
+  // are in an error state.
+  if (!liveData.broadcast.jobsInErrorCount) {
+    if (liveData.broadcast.height.bitcoind > liveData.broadcast.height.overnode) {
+      const fromHeight = liveData.broadcast.height.overnode + 1;
+      let toHeight = fromHeight + Number(process.env.COLLATION_JOB_CHUNK_SIZE) - 1;
+      if (toHeight > liveData.broadcast.height.bitcoind) {
+        toHeight = liveData.broadcast.height.bitcoind;
+      }
+      await jobs.process({ fromHeight, toHeight });
     }
-    await collate(fromHeight, toHeight);
   }
 
   // Store mempool tx count readings - about 1 a second
