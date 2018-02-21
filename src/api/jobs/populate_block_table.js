@@ -1,8 +1,6 @@
 /* Ignore camel case requirement for function names.  These names are visible */
 /* to non-programmers:                                                        */
 /* eslint-disable camelcase                                                   */
-/* Ignore await in loop - deliberate synchronous job processing.              */
-/* eslint-disable no-await-in-loop                                            */
 
 import blocks from '../blocks';
 import { knex } from '../../knex';

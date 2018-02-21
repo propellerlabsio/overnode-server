@@ -69,7 +69,7 @@ knex
     console.log(`Running a http server at localhost:${htmlPort}`);
     console.log(`Running a GraphQL API server at localhost:${htmlPort}/graphql`);
 
-    // Reset any job errors and then kick off collate job(s)
+    // Reset any job errors so they can be reattempted/kicked off again
     await jobs.resetErrors();
 
     // Start websockets server for handling live data feeds
