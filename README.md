@@ -17,7 +17,7 @@ There is an example client / UI implementation written in VueJs which is hosted 
 
 2. You need an empty / dedicated postgresql database available.
 
-3. You need to configure your [Environment variables](#enviroment-variables).
+3. You need to configure your [Environment variables](#environment-variables).
 
 ### Building and running
 
