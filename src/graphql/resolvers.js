@@ -26,12 +26,6 @@ const resolvers = {
     peers: (root, args) => peers.find(args),
     transaction: (root, args) => transactions.get(args),
   },
-  // Transaction Block has been temporarily removed to prevent recursive Block->Transaction->Block
-  // queries which could heavily impact the server.  It will be reinstated when we have a way
-  // to introduce query costing and prevent malicious queries being executed by the public.
-  // Transaction: {
-  // block: transaction => resolvers.Query.block(transaction, { hash: transaction.blockhash }),
-  // },
 };
 
 export default resolvers;

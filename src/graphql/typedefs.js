@@ -140,11 +140,6 @@ const typeDefs = `
     }
 
     # A single bitcoin transaction.
-    # Note:
-    # Transaction Block has been temporarily removed to prevent recursive Block->Transaction->Block
-    # queries which could heavily impact the server.  It will be reinstated when we have a way 
-    # to introduce query costing and prevent malicious queries being executed by the public.
-    # In the meantime, please query the block directly using the block hash provided.
     type Transaction {
       txid: String!
       size: Int!
