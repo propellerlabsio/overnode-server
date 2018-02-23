@@ -1,6 +1,6 @@
 {
   "name": "overnode-server",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Overnode Server",
   "main": "index.js",
   "dependencies": {
