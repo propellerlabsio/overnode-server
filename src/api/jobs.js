@@ -85,11 +85,11 @@ const jobs = {
    */
   update: ({ functionName, height, errorHeight, errorMessage, knexTransaction }) => {
     const update = {};
-    if (height) {
+    if (height !== undefined) {
       update.height = height;
     }
 
-    if (errorHeight) {
+    if (errorHeight !== undefined) {
       update.error_height = errorHeight;
       update.error_message = errorMessage;
     }
@@ -113,10 +113,13 @@ const jobs = {
 
         // Populate block table
         await jobs.execute({ functionName: 'populate_block_table', block });
+
+        // Sync transaction to database
+        await jobs.execute({ functionName: 'sync_transaction', block });
       }
     } catch (err) {
       // eslint-disable-next-line no-console
-      console.log('Stopping job processing due to error');
+      console.log('Stopping job processing due to error: ', err.message);
     }
   },
 };
