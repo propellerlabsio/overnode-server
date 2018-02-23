@@ -143,13 +143,13 @@ async function main() {
   liveData.broadcast.height.overnode = min;
 
   // Collect count of block height value for peers
-  // Ingore those where peer does not provide a valid value - ie -1
+  // Ingore those where peers who are behind our bitcoind best block
   const peerHeights = [];
   liveData.rpc.peers
-    .filter(peer => peer.synced_blocks > -1)
+    .filter(peer => peer.synced_headers >= liveData.broadcast.height.bitcoind)
     .forEach((peer) => {
       const index = peerHeights
-        .findIndex(rec => rec.height === peer.synced_blocks);
+        .findIndex(rec => rec.height === peer.synced_headers);
       if (index < 0) {
         peerHeights.push({ height: peer.synced_blocks, count: 1 });
       } else {
@@ -158,7 +158,7 @@ async function main() {
     });
 
   // Get most common peer height at or above our height
-  const [commonHeight] = peerHeights.sort((a, b) => a.count < b.count);
+  const [commonHeight] = peerHeights.sort((a, b) => b.count - a.count);
   liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
 
   // If database is behind bitcoind, trigger sync jobs unless we
