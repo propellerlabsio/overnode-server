@@ -16,7 +16,7 @@ export default async function populate_block_table(block, knexTransaction) {
   let interval = 0;
   if (block.height > 0) {
     const lastBlockHeight = block.height - 1;
-    const lastBlock = await blocks.summary.get({ height: lastBlockHeight });
+    const lastBlock = await blocks.get({ height: lastBlockHeight });
     if (!lastBlock) {
       throw new Error(`Can't find previous block ${lastBlockHeight} in database`);
     }

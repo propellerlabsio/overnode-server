@@ -2,18 +2,6 @@
 /* Ignore camel case requirement for function names.  These names are visible */
 /* to non-programmers:                                                        */
 /* eslint-disable camelcase                                                   */
-/*                                                                            */
-/* Fetch transactions synchronously.  Async would require that we             */
-/* increase the limit that bitcoind will accept by setting option             */
-/* rpcworkqueue=<n> to a higher number than the default (16?) but obviously   */
-/* there's a ceiling to how far we can keepd doing that.                      */
-/* eslint-disable no-await-in-loop                                            */
-/*                                                                            */
-/* Despite AirBnb's objections, the new for-in syntax is the only way I can   */
-/* reliably get async/await working inside a loop and is the recommended way  */
-/* to do it according to my searches.  Trying to code around AirBnb's rules   */
-/* in this instance has only lead to breaching other rules or buggy code.     */
-/* eslint-disable no-restricted-syntax                                        */
 
 import { request as rpc } from '../../rpc';
 import { knex } from '../../knex';
@@ -34,16 +22,17 @@ const MAX_CONCURRENT_TRANSACTIONS = 4;
 async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTransaction) {
   let promise;
 
-  const txid = stack.pop();
-  if (txid) {
+  const transaction = stack.pop();
+  if (transaction) {
     // Get raw transaction
     // console.debug(`Virtual thread ${virtualThreadNo} Getting transaction ${txid}`);
-    const rawTx = await rpc('getrawtransaction', txid, 1);
+    const rawTx = await rpc('getrawtransaction', transaction.transaction_id, 1);
 
     // Insert transaction into database
     // console.debug(`Virtual thread ${virtualThreadNo} Inserting transaction ${txid}`);
     await knex('transaction').insert({
       transaction_id: rawTx.txid,
+      transaction_index: transaction.index,
       size: rawTx.size,
       block_hash: rawTx.blockhash,
       time: rawTx.time,
@@ -112,7 +101,10 @@ export default async function sync_transaction(block, knexTransaction) {
   }
 
   // Create stack of txids to be synced
-  const stack = block.tx.slice();
+  const stack = block.tx.slice().map((transaction_id, index) => ({
+    index,
+    transaction_id,
+  }));
 
   // Create array of concurrent promises
   const promises = [];

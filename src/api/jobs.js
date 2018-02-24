@@ -60,19 +60,23 @@ const jobs = {
             functionName,
             height: block.height,
             knexTransaction,
-          });
+          }).transacting(knexTransaction);
           await knexTransaction.commit();
         }
       } catch (err) {
-        await knexTransaction.rollback();
-        await jobs.update({
-          functionName,
-          errorHeight: block.height,
-          errorMessage: err.message,
-        });
-
-        // eslint-disable-next-line no-console
-        console.error(`Job '${job.function_name}' failed with error: ${err.message}`);
+        // Can't use await in catch block; go oldskool
+        knexTransaction
+          .rollback()
+          .then(() => {
+            jobs.update({
+              functionName,
+              errorHeight: block.height,
+              errorMessage: err.message,
+            }).then(() => {
+              // eslint-disable-next-line no-console
+              console.error(`Job '${job.function_name}' failed with error: ${err.message}`);
+            });
+          });
 
         // Rethrow error to caller
         throw err;
@@ -83,23 +87,23 @@ const jobs = {
   /**
    * Update job details in the database
    */
-  update: ({ functionName, height, errorHeight, errorMessage, knexTransaction }) => {
-    const update = {};
+  update: ({ functionName, height, errorHeight, errorMessage }) => {
+    const updateValues = {};
     if (height !== undefined) {
-      update.height = height;
+      updateValues.height = height;
     }
 
     if (errorHeight !== undefined) {
-      update.error_height = errorHeight;
-      update.error_message = errorMessage;
+      updateValues.error_height = errorHeight;
+      updateValues.error_message = errorMessage;
     }
 
     // Do update
     return knex('job')
       .where('function_name', functionName)
-      .update(update)
-      .transacting(knexTransaction);
+      .update(updateValues);
   },
+
 
   /**
    * Process jobs that haven't been run yet from fromHeight to toHeight
