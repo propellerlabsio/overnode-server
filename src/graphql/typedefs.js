@@ -7,32 +7,12 @@
 const typeDefs = `
     type Block {
       hash: String!
-      confirmations: Int!
       size: Int!
       height: Int!
-      version: Int!
-      versionHex: String!
-      merkleroot: String!
+      time: Int!
+      tx_count: Int!
+      interval: Int!
       transactions(fromIndex: Int = 0, limit: Int): [Transaction]
-      time: Int!
-      mediantime: Int!
-      nonce: Float!
-      bits: String!
-      interval: Int!
-      tx_count: Int!
-      difficulty: Float!
-      chainwork: String!
-      previousblockhash: String
-      nextblockhash: String
-    }
-
-    type BlockSummary {
-      hash: String!
-      size: Int!
-      height: Int!
-      time: Int!
-      tx_count: Int!
-      interval: Int!
     }
 
     type CPU {
@@ -124,7 +104,7 @@ const typeDefs = `
     type Query {
         block(hash: String, height: Int): Block!
 
-        blocks(fromHeight: Int, limit: Int): [BlockSummary],
+        blocks(fromHeight: Int, limit: Int): [Block],
 
         host: Host!
 
@@ -142,6 +122,7 @@ const typeDefs = `
     # A single bitcoin transaction.
     type Transaction {
       transaction_id: String!
+      transaction_index: Int!
       size: Int!
       block_hash: String
       time: Int!
@@ -154,7 +135,7 @@ const typeDefs = `
       input_index: Int!
       block_hash: String
       coinbase: String
-      output_transaction_id: Int
+      output_transaction_id: String
       output_index: Int
     }
 
