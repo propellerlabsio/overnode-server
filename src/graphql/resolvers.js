@@ -1,9 +1,11 @@
+import addresses from '../api/addresses';
 import blocks from '../api/blocks';
 import host from '../api/host';
 import inputs from '../api/inputs';
 import jobs from '../api/jobs';
 import limits from '../api/limits';
 import node from '../api/node';
+import outputs from '../api/outputs';
 import peers from '../api/peers';
 import transactions from '../api/transactions';
 
@@ -41,7 +43,11 @@ const resolvers = {
     transaction: (root, args) => transactions.get(args),
   },
   Transaction: {
-    inputs: transaction => inputs.find(transaction),
+    inputs: (transaction, args) => limitQuery('inputs', inputs.find, Object.assign(args, transaction)),
+    outputs: (transaction, args) => limitQuery('outputs', outputs.find, Object.assign(args, transaction)),
+  },
+  TransactionOutput: {
+    addresses: input => addresses.find(input),
   },
 };
 

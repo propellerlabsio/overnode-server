@@ -5,17 +5,13 @@
 
 import { knex } from '../knex';
 
-const transactions = {
-  get: ({ transaction_id }) =>
-    knex('transaction')
+const outputs = {
+  find: ({ transaction_id, output_index }) =>
+    knex('output_address')
+      .select('address')
       .where('transaction_id', transaction_id)
-      .first(),
-  forBlock: ({ block, fromIndex, limit }) =>
-    knex('transaction')
-      .where('block_hash', block.hash)
-      .andWhere('transaction_index', '>=', fromIndex)
-      .limit(limit)
-      .orderBy('transaction_index'),
+      .andWhere('output_index', output_index)
+      .map(row => row.address),
 };
 
-export default transactions;
+export default outputs;

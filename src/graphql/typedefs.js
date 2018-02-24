@@ -116,7 +116,7 @@ const typeDefs = `
 
         peers: [Peer]
 
-        transaction(txid: String!): Transaction
+        transaction(transaction_id: String!): Transaction
     }
 
     # A single bitcoin transaction.
@@ -126,8 +126,10 @@ const typeDefs = `
       size: Int!
       block_hash: String
       time: Int!
-      inputs: [TransactionInput]
-      outputs: [TransactionOutput]
+      input_count: Int!
+      output_count: Int!
+      inputs(fromIndex: Int = 0, limit: Int): [TransactionInput]
+      outputs(fromIndex: Int = 0, limit: Int): [TransactionOutput]
     }
 
     type TransactionInput {

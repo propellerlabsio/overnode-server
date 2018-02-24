@@ -6,7 +6,12 @@
 import { knex } from '../knex';
 
 const inputs = {
-  find: ({ transaction_id }) => knex('input').where('transaction_id', transaction_id),
+  find: ({ transaction_id, fromIndex, limit }) =>
+    knex('input')
+      .where('transaction_id', transaction_id)
+      .andWhere('input_index', '>=', fromIndex)
+      .limit(limit)
+      .orderBy('input_index'),
 };
 
 export default inputs;

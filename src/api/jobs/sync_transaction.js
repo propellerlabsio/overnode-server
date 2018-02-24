@@ -36,6 +36,8 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
       size: rawTx.size,
       block_hash: rawTx.blockhash,
       time: rawTx.time,
+      input_count: rawTx.vin.length,
+      output_count: rawTx.vout.length,
     }).transacting(knexTransaction);
 
     // Insert transaction inputs into database.
