@@ -20,8 +20,9 @@ import { knex } from '../../knex';
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
 // by default is configured to allow 16 concurrent calls from all processes
-// so we probably want to leave some free.
-const MAX_CONCURRENT_TRANSACTIONS = 8;
+// so we need to leave enough free for whatever other processes are hitting
+// bitcoind.
+const MAX_CONCURRENT_TRANSACTIONS = 4;
 
 /**
  * Pop the next txid off the stack and sync it.  Then call this procedure again.
@@ -42,18 +43,29 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
     // Insert transaction into database
     // console.debug(`Virtual thread ${virtualThreadNo} Inserting transaction ${txid}`);
     await knex('transaction').insert({
-      id: rawTx.txid,
+      transaction_id: rawTx.txid,
       size: rawTx.size,
-      blockhash: rawTx.blockhash,
+      block_hash: rawTx.blockhash,
       time: rawTx.time,
     }).transacting(knexTransaction);
+
+    // Insert transaction inputs into database.
+    const inputs = rawTx.vin.map((input, index) => ({
+      transaction_id: rawTx.txid,
+      input_index: index,
+      block_hash: block.hash,
+      coinbase: input.coinbase,
+      output_transaction_id: input.txid,
+      output_index: input.vout,
+    }));
+    await knex.insert(inputs).into('input').transacting(knexTransaction);
 
     // Insert transaction outputs into database.  Note that unlike a regular insert,
     // we are using a db transaction which means we can't get back the id field
     // values of the inserted records
     const outputs = rawTx.vout.map(output => ({
-      transaction: rawTx.txid,
-      number: output.n,
+      transaction_id: rawTx.txid,
+      output_index: output.n,
       value: output.value,
     }));
     await knex.insert(outputs).into('output').transacting(knexTransaction);
@@ -68,8 +80,8 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
       if (rawAddresses) {
         rawAddresses.forEach((rawAddress) => {
           results.push({
-            transaction: output.transaction,
-            number: output.number,
+            transaction_id: output.transaction_id,
+            output_index: output.output_index,
             address: rawAddress.substr(12), // ditch 'bitcoincash:' prefix
           });
         });

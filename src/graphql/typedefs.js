@@ -141,23 +141,26 @@ const typeDefs = `
 
     # A single bitcoin transaction.
     type Transaction {
-      txid: String!
+      transaction_id: String!
       size: Int!
-      blockhash: String
-      confirmations: Int
+      block_hash: String
       time: Int!
       inputs: [TransactionInput]
       outputs: [TransactionOutput]
     }
 
     type TransactionInput {
+      transaction_id: String!
+      input_index: Int!
+      block_hash: String
       coinbase: String
-      txid: String
-      output_number: Int
+      output_transaction_id: Int
+      output_index: Int
     }
 
     type TransactionOutput {
-      number: Int
+      transaction_id: String!
+      output_index: Int
       value: Float
       addresses: [String]
     }
