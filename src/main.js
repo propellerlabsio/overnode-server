@@ -182,7 +182,7 @@ async function main() {
       } else {
         // Regular processing, only one block at a time
         const fromHeight = liveData.broadcast.height.overnode + 1;
-        const toHeight = fromHeight + 1;
+        const toHeight = fromHeight;
         await jobs.process({ fromHeight, toHeight });
       }
     }
