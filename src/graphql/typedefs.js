@@ -51,9 +51,9 @@ const typeDefs = `
     }
 
     type Job {
-      id: Int!
-      function_name: String!
-      height: Int
+      name: String!
+      from_height: Int
+      to_height: Int
       error_height: Int
       error_message: String
     }

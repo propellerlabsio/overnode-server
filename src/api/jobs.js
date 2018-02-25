@@ -11,8 +11,8 @@ const jobs = {
   /**
    * Return single job uniquely identified by function name
    */
-  get: async ({ functionName }) => {
-    const [job] = await knex('job').where('function_name', functionName);
+  get: async ({ name }) => {
+    const [job] = await knex('job').where('name', name);
     return job;
   },
 
@@ -49,16 +49,16 @@ const jobs = {
   /**
    * Execute a given job with a given block
    */
-  execute: async ({ functionName, block }) => {
-    const job = await jobs.get({ functionName });
+  execute: async ({ name, block }) => {
+    const job = await jobs.get({ name });
 
     return knex.transaction(async (knexTransaction) => {
       try {
-        if (job.height + 1 === block.height && job.error_height === null) {
-          await functions[job.function_name](block, knexTransaction);
+        if (job.to_height + 1 === block.height && job.error_height === null) {
+          await functions[job.name](block, knexTransaction);
           await jobs.update({
-            functionName,
-            height: block.height,
+            name,
+            toHeight: block.height,
             knexTransaction,
           }).transacting(knexTransaction);
           await knexTransaction.commit();
@@ -69,12 +69,12 @@ const jobs = {
           .rollback()
           .then(() => {
             jobs.update({
-              functionName,
+              name,
               errorHeight: block.height,
               errorMessage: err.message,
             }).then(() => {
               // eslint-disable-next-line no-console
-              console.error(`Job '${job.function_name}' failed with error: ${err.message}`);
+              console.error(`Job '${job.name}' failed with error: ${err.message}`);
             });
           });
 
@@ -87,10 +87,14 @@ const jobs = {
   /**
    * Update job details in the database
    */
-  update: ({ functionName, height, errorHeight, errorMessage }) => {
+  update: ({ name, fromHeight, toHeight, errorHeight, errorMessage }) => {
     const updateValues = {};
-    if (height !== undefined) {
-      updateValues.height = height;
+    if (fromHeight !== undefined) {
+      updateValues.from_height = fromHeight;
+    }
+
+    if (toHeight !== undefined) {
+      updateValues.to_height = toHeight;
     }
 
     if (errorHeight !== undefined) {
@@ -100,7 +104,7 @@ const jobs = {
 
     // Do update
     return knex('job')
-      .where('function_name', functionName)
+      .where('name', name)
       .update(updateValues);
   },
 
@@ -116,10 +120,10 @@ const jobs = {
         const block = await rpc('getblock', height.toString());
 
         // Populate block table
-        await jobs.execute({ functionName: 'populate_block_table', block });
+        await jobs.execute({ name: 'populate_block_table', block });
 
         // Sync transaction to database
-        await jobs.execute({ functionName: 'sync_transaction', block });
+        await jobs.execute({ name: 'sync_transaction', block });
       }
     } catch (err) {
       // eslint-disable-next-line no-console

@@ -105,7 +105,7 @@ async function main() {
   liveData.broadcast.time = new Date();
 
   // Get number of jobs in error
-  const [{ count }] = await knex('job').count('function_name').whereNotNull('error_message');
+  const [{ count }] = await knex('job').count('name').whereNotNull('error_message');
   liveData.broadcast.jobsInErrorCount = Number(count);
 
   // Keep core status information in importable variable for other processes
@@ -138,10 +138,6 @@ async function main() {
     return broadcastPeer;
   });
 
-  // Get the highest block we have fully synced to the database
-  const [{ min }] = await knex('job').min('height').select();
-  liveData.broadcast.height.overnode = min;
-
   // Collect count of block height value for peers
   // Ingore those where peers who are behind our bitcoind best block
   const peerHeights = [];
@@ -161,6 +157,10 @@ async function main() {
   const [commonHeight] = peerHeights.sort((a, b) => b.count - a.count);
   liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
 
+  // Get the highest block we have fully synced to the database
+  const [{ min }] = await knex('job').min('to_height').select();
+  liveData.broadcast.height.overnode = min;
+
   // If database is behind bitcoind, trigger sync jobs unless we
   // are in an error state.
   if (!liveData.broadcast.jobsInErrorCount) {
@@ -169,16 +169,19 @@ async function main() {
       // process blocks until we are caught up and all other services will be degraded.
       const behindBy = liveData.broadcast.height.bitcoind - liveData.broadcast.height.overnode;
       if (behindBy > 6) {
+        console.log(`Database is ${behindBy} blocks behind. Entering prioritySyncing mode; other services will be suspended/degraded.`);
+
         // Signal clients that we are in priortySyncing mode
         liveData.broadcast.prioritySyncing = true;
 
-        // Process all blocks that we haven't yet synced
+        // Process all blocks that we haven't yet synced (forward direction only)
         const fromHeight = liveData.broadcast.height.overnode + 1;
         const toHeight = liveData.broadcast.height.bitcoind;
         await jobs.process({ fromHeight, toHeight });
 
         // Signal to clients that prioritySyncing has finished
         liveData.broadcast.prioritySyncing = false;
+        console.log('Leaving prioritySyncing mode.');
       } else {
         // Regular processing, only one block at a time
         const fromHeight = liveData.broadcast.height.overnode + 1;
