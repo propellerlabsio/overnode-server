@@ -2,7 +2,7 @@ import addresses from '../api/addresses';
 import blocks from '../api/blocks';
 import host from '../api/host';
 import inputs from '../api/inputs';
-import jobs from '../api/jobs';
+import sync from '../api/sync';
 import limits from '../api/limits';
 import node from '../api/node';
 import outputs from '../api/outputs';
@@ -36,7 +36,7 @@ const resolvers = {
     block: (root, args) => blocks.get(args),
     blocks: (root, args) => limitQuery('blocks', blocks.find, args),
     host: (root, args) => host.get(args),
-    jobs: (root, args) => jobs.find(args),
+    sync: (root, args) => sync.find(args),
     node: (root, args) => node.get(args),
     peer: (root, args) => peers.get(args),
     peers: (root, args) => peers.find(args),

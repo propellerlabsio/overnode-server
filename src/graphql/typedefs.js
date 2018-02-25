@@ -50,7 +50,7 @@ const typeDefs = `
       walletversion: Int!      
     }
 
-    type Job {
+    type SyncJob {
       name: String!
       from_height: Int
       to_height: Int
@@ -110,7 +110,7 @@ const typeDefs = `
 
         node: Node!
 
-        jobs(onlyJobsInError: Boolean): [Job]
+        sync(onlyJobsInError: Boolean): [SyncJob]
 
         peer(id: Int!): Peer
 

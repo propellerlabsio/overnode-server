@@ -9,7 +9,7 @@ import { makeExecutableSchema } from 'graphql-tools';
 import { knex } from './knex';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
-import jobs from './api/jobs';
+import sync from './api/sync';
 import socket from './socket';
 import * as rpc from './rpc';
 import { start as startMain } from './main';
@@ -69,8 +69,8 @@ knex
     console.log(`Running a http server at localhost:${htmlPort}`);
     console.log(`Running a GraphQL API server at localhost:${htmlPort}/graphql`);
 
-    // Reset any job errors so they can be reattempted/kicked off again
-    await jobs.resetErrors();
+    // Reset any sync job errors so they can be reattempted/kicked off again
+    await sync.resetErrors();
 
     // Start websockets server for handling live data feeds
     socket(expressServer);
