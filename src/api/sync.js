@@ -142,7 +142,7 @@ const sync = {
 
     if (errorHeight !== undefined) {
       updateValues.error_height = errorHeight;
-      updateValues.error_message = errorMessage;
+      updateValues.error_message = errorMessage.substring(0, 255);
     }
 
     // Do update
