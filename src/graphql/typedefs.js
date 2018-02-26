@@ -5,6 +5,11 @@
 // implementation or roll our own.  Examples include:
 // Block.nonce, Host.totalmem, Peer.bytessent and bytesrecv.
 const typeDefs = `
+    type Address {
+      address: String!
+      transactions(fromIndex: Int = 0, limit: Int): [Transaction]
+    }
+
     type Block {
       hash: String!
       size: Int!
@@ -117,6 +122,14 @@ const typeDefs = `
         peers: [Peer]
 
         transaction(transaction_id: String!): Transaction
+
+        search(term: String!): SearchResult
+    }
+
+    type SearchResult {
+      block: Block
+      transaction: Transaction
+      address: Address
     }
 
     # A single bitcoin transaction.

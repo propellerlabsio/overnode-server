@@ -5,8 +5,12 @@
 
 import { knex } from '../knex';
 
-const outputs = {
-  find: ({ transaction_id, output_index }) =>
+const addresses = {
+  get: ({ address }) =>
+    knex('output_address')
+      .where('address', address)
+      .first(),
+  findByOutput: ({ transaction_id, output_index }) =>
     knex('output_address')
       .select('address')
       .where('transaction_id', transaction_id)
@@ -14,4 +18,4 @@ const outputs = {
       .map(row => row.address),
 };
 
-export default outputs;
+export default addresses;

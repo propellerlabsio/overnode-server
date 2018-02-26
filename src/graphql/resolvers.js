@@ -7,6 +7,7 @@ import limits from '../api/limits';
 import node from '../api/node';
 import outputs from '../api/outputs';
 import peers from '../api/peers';
+import search from '../api/search';
 import transactions from '../api/transactions';
 
 function limitQuery(queryName, apiFunction, args) {
@@ -22,8 +23,15 @@ function limitQuery(queryName, apiFunction, args) {
 }
 
 const resolvers = {
+  Address: {
+    transactions: ({ address }, args) => limitQuery('transactions', transactions.findByAddress, {
+      address,
+      fromIndex: args.fromIndex,
+      limit: args.limit,
+    }),
+  },
   Block: {
-    transactions: (block, args) => limitQuery('transactions', transactions.forBlock, {
+    transactions: (block, args) => limitQuery('transactions', transactions.findByBlock, {
       block,
       fromIndex: args.fromIndex,
       limit: args.limit,
@@ -41,13 +49,14 @@ const resolvers = {
     peer: (root, args) => peers.get(args),
     peers: (root, args) => peers.find(args),
     transaction: (root, args) => transactions.get(args),
+    search: (root, args) => search.simple(args),
   },
   Transaction: {
     inputs: (transaction, args) => limitQuery('inputs', inputs.find, Object.assign(args, transaction)),
     outputs: (transaction, args) => limitQuery('outputs', outputs.find, Object.assign(args, transaction)),
   },
   TransactionOutput: {
-    addresses: input => addresses.find(input),
+    addresses: output => addresses.findByOutput(output),
   },
 };
 

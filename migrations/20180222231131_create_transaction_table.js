@@ -10,8 +10,9 @@ exports.up = function (knex) {
     table.integer('input_count');
     table.integer('output_count');
 
-    // Foreign keys
+    // Foreign keys and indexes
     table.foreign('block_hash').references('block.hash');
+    table.index('block_hash');
   });
 };
 
