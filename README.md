@@ -44,13 +44,15 @@ This will allow the client to know a refresh is required.
 
 ## Contributing
 
-TODO
+TODO - complete this section.
 
-This project is linted with eslint using the AirBnB style guide rules. 
+### Style
 
-## TODO
+This project is linted with eslint using the AirBnB style guide rules.
 
-TODO
+### Field naming conventions
+
+Postgresql doesn't support camelcase field names and instead components of field names are separated by the underscore character.  In order to remove the need for extensive transalation, GraphQL queries return properties in the same format.  GraphQL types however follow normal GraphQL naming conventions.  Field names in JSON data returned by bitcoind are inconsistent from query to query and are translated to our standard on storage or presentation.
 
 ## Reference
 

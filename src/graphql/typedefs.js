@@ -5,34 +5,19 @@
 // implementation or roll our own.  Examples include:
 // Block.nonce, Host.totalmem, Peer.bytessent and bytesrecv.
 const typeDefs = `
-    type Block {
-      hash: String!
-      confirmations: Int!
-      size: Int!
-      height: Int!
-      version: Int!
-      versionHex: String!
-      merkleroot: String!
+    type Address {
+      address: String!
       transactions(fromIndex: Int = 0, limit: Int): [Transaction]
-      time: Int!
-      mediantime: Int!
-      nonce: Float!
-      bits: String!
-      interval: Int!
-      tx_count: Int!
-      difficulty: Float!
-      chainwork: String!
-      previousblockhash: String
-      nextblockhash: String
     }
 
-    type BlockSummary {
+    type Block {
       hash: String!
       size: Int!
       height: Int!
       time: Int!
       tx_count: Int!
       interval: Int!
+      transactions(fromIndex: Int = 0, limit: Int): [Transaction]
     }
 
     type CPU {
@@ -70,10 +55,10 @@ const typeDefs = `
       walletversion: Int!      
     }
 
-    type Job {
-      id: Int!
-      function_name: String!
-      height: Int
+    type SyncJob {
+      name: String!
+      from_height: Int
+      to_height: Int
       error_height: Int
       error_message: String
     }
@@ -124,40 +109,54 @@ const typeDefs = `
     type Query {
         block(hash: String, height: Int): Block!
 
-        blocks(fromHeight: Int, limit: Int): [BlockSummary],
+        blocks(fromHeight: Int, limit: Int): [Block],
 
         host: Host!
 
         node: Node!
 
-        jobs(onlyJobsInError: Boolean): [Job]
+        sync(onlyJobsInError: Boolean): [SyncJob]
 
         peer(id: Int!): Peer
 
         peers: [Peer]
 
-        transaction(txid: String!): Transaction
+        transaction(transaction_id: String!): Transaction
+
+        search(term: String!): SearchResult
+    }
+
+    type SearchResult {
+      block: Block
+      transaction: Transaction
+      address: Address
     }
 
     # A single bitcoin transaction.
     type Transaction {
-      txid: String!
+      transaction_id: String!
+      transaction_index: Int!
       size: Int!
-      blockhash: String
-      confirmations: Int
+      block_hash: String
       time: Int!
-      inputs: [TransactionInput]
-      outputs: [TransactionOutput]
+      input_count: Int!
+      output_count: Int!
+      inputs(fromIndex: Int = 0, limit: Int): [TransactionInput]
+      outputs(fromIndex: Int = 0, limit: Int): [TransactionOutput]
     }
 
     type TransactionInput {
+      transaction_id: String!
+      input_index: Int!
+      block_hash: String
       coinbase: String
-      txid: String
-      output_number: Int
+      output_transaction_id: String
+      output_index: Int
     }
 
     type TransactionOutput {
-      number: Int
+      transaction_id: String!
+      output_index: Int
       value: Float
       addresses: [String]
     }

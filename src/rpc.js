@@ -42,7 +42,13 @@ export function request(method, ...params) {
       });
       res.on('end', () => {
         if (responseData) {
-          resolve(JSON.parse(responseData).result);
+          try {
+            // Probably JSON response
+            resolve(JSON.parse(responseData).result);
+          } catch (err) {
+            // Not a JSON response - probably just an error message in plaintext
+            reject(new Error(`bitcoind returned: ${responseData}`));
+          }
         } else {
           resolve();
         }
