@@ -177,7 +177,7 @@ async function main() {
         // Process all blocks that we haven't yet synced (forward direction only)
         const fromHeight = liveData.broadcast.height.overnode + 1;
         const toHeight = liveData.broadcast.height.bitcoind;
-        await sync.process({ fromHeight, toHeight });
+        await sync.process({ fromHeight, toHeight, direction: sync.FORWARD });
 
         // Signal to clients that prioritySyncing has finished
         liveData.broadcast.prioritySyncing = false;
@@ -186,7 +186,7 @@ async function main() {
         // Regular processing, only one block at a time
         const fromHeight = liveData.broadcast.height.overnode + 1;
         const toHeight = fromHeight;
-        await sync.process({ fromHeight, toHeight });
+        await sync.process({ fromHeight, toHeight, direction: sync.FORWARD });
       }
     }
   }

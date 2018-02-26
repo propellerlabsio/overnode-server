@@ -15,21 +15,19 @@ exports.up = function (knex) {
         name: syncName,
       }
       // Existing or new install?
-      debugger;
       if (blocksJob.to_height > 0) {
-        // Create sync transaction job to start approx 7 days before
+        // Create sync transaction job to start approx 2 days before
         // blocks sync height
-        let heightSevenDaysEarlier = blocksJob.to_height - (
+        let heightADayEarlier = blocksJob.to_height - (
           6 * // blocks per hour
-          24 * // hours per day
-          7 // days per week
+          24  // hours per day
         )
-        if (heightSevenDaysEarlier < 0) {
+        if (heightADayEarlier < 0) {
           transactionsJob.from_height = 0; // No backward syncing
           transactionsJob.to_height = -1;  // Sync forward; next (first) block is 0
         } else {
-          transactionsJob.from_height = heightSevenDaysEarlier + 1; // Backward sync from here (next is -1)
-          transactionsJob.to_height = heightSevenDaysEarlier;  // Sync forward; next (first) block is this + 1;
+          transactionsJob.from_height = heightADayEarlier + 1; // Backward sync from here (next is -1)
+          transactionsJob.to_height = heightADayEarlier;  // Sync forward; next (first) block is this + 1;
         }
       } else {
         // New install, blocks not synced yet so just start at the beginning for transactions too

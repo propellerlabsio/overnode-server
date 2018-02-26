@@ -72,6 +72,9 @@ knex
     // Reset any sync job errors so they can be reattempted/kicked off again
     await sync.resetErrors();
 
+    // Start backwards syncing asynchronously
+    sync.backSync();
+
     // Start websockets server for handling live data feeds
     socket(expressServer);
 

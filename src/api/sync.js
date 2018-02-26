@@ -2,12 +2,19 @@
 /* eslint-disable no-await-in-loop                                             */
 /* Allow arguments in curly braces on same line as function definition because */
 /* eslint-disable object-curly-newline                                         */
+/* Allow console messages from this file only (important log info)             */
+/* eslint-disable no-console                                                   */
 
 import { knex } from '../knex';
 import functions from './sync/functions';
 import { request as rpc } from '../rpc';
 
 const sync = {
+
+  // Constants
+  FORWARD: 1,
+  BACKWARD: -1,
+
   /**
    * Return single sync job uniquely identified by name
    */
@@ -42,59 +49,95 @@ const sync = {
         error_message: null,
       });
 
-    // eslint-disable-next-line no-console
     console.info('Error state of sync jobs has been reset for reattempting');
+  },
+
+  /**
+   * Backwards sync any jobs that have a from-height of greater than zero.
+   *
+   * Normal sync operations are forward however it is useful to deploy
+   * new sync jobs at a recent block height and allow users to continue
+   * to use the service while a second process (this one) backwards
+   * syncs back to block height 0.
+   */
+  backSync: async () => {
+    try {
+      // Get maximum 'from_height' that isn't zero
+      const { max } = await knex('sync')
+        .max('from_height')
+        .where('from_height', '>=', 0)
+        .first();
+
+      // Start syncing
+      if (max) {
+        console.log('Starting backwards syncing');
+        await sync.process({
+          fromHeight: max - 1,
+          toHeight: 0,
+          direction: sync.BACKWARD,
+        });
+        console.log('Backwards syncing complete');
+      }
+    } catch (err) {
+      console.error('Error back-syncing: ', err.message);
+    }
   },
 
   /**
    * Execute a given sync job with a given block
    */
-  execute: async ({ name, block }) => {
-    const job = await sync.get({ name });
-
-    return knex.transaction(async (knexTransaction) => {
-      try {
-        if (job.to_height + 1 === block.height && job.error_height === null) {
-          await functions[job.name](block, knexTransaction);
-          await sync.update({
-            name,
-            toHeight: block.height,
-            knexTransaction,
-          }).transacting(knexTransaction);
-          await knexTransaction.commit();
-        }
-      } catch (err) {
-        // Can't use await in catch block; go oldskool
-        knexTransaction
-          .rollback()
-          .then(() => {
-            sync.update({
+  execute: async ({ name, block, direction }) => {
+    // Do database changes in a knex/db transaction.
+    await knex.transaction((knexTransaction) => {
+      return sync
+        .get({ name })
+        .then(async (job) => {
+          let result;
+          const alreadySynced = block.height >= job.from_height && block.height <= job.to_height;
+          if (job.error_height === null && !alreadySynced) {
+            await functions[job.name](block, knexTransaction);
+            await sync.update({
               name,
-              errorHeight: block.height,
-              errorMessage: err.message,
-            }).then(() => {
-              // eslint-disable-next-line no-console
-              console.error(`Sync job '${job.name}' failed with error: ${err.message}`);
-            });
-          });
+              newHeight: block.height,
+              direction,
+              knexTransaction,
+            }).transacting(knexTransaction);
+            result = knexTransaction.commit();
+          } else {
+            result = null;
+          }
+          return result;
+        })
+        .catch(async (error) => {
+          await knexTransaction.rollback(error);
+        });
+    }).catch(async (error) => {
+      // If error in above db transaction, log to database.  Need to do this outside of
+      // above db transaction
+      console.error(`Sync job '${name}' (direction: ${direction}) failed with error: ${error.message}`);
+      await sync.update({
+        name,
+        errorHeight: block.height,
+        errorMessage: error.message,
+      });
 
-        // Rethrow error to caller
-        throw err;
-      }
+      // Rethrow error to caller
+      throw error;
     });
   },
 
   /**
    * Update sync job details in the database
    */
-  update: ({ name, fromHeight, toHeight, errorHeight, errorMessage }) => {
+  update: ({ name, newHeight, direction, errorHeight, errorMessage }) => {
     const updateValues = {};
-    if (fromHeight !== undefined) {
-      updateValues.from_height = fromHeight;
-    }
 
-    if (toHeight !== undefined) {
-      updateValues.to_height = toHeight;
+    if (newHeight !== undefined) {
+      if (direction === sync.FORWARD) {
+        updateValues.to_height = newHeight;
+      } else {
+        updateValues.from_height = newHeight;
+      }
     }
 
     if (errorHeight !== undefined) {
@@ -112,21 +155,26 @@ const sync = {
   /**
    * Process sync jobs that haven't been run yet from fromHeight to toHeight
    */
-  process: async ({ fromHeight, toHeight }) => {
+  process: async ({ fromHeight, toHeight, direction }) => {
+    // Validate params
+    if (direction !== sync.FORWARD && direction !== sync.BACKWARD) {
+      throw new Error('Invalid or no sync direction provided.');
+    }
+
+    // Process blocks
     try {
       // For each block in range
-      for (let height = fromHeight; height <= toHeight; height++) {
+      for (let height = fromHeight; height !== (toHeight + direction); height += direction) {
         // Get block.
         const block = await rpc('getblock', height.toString());
 
         // Populate block table
-        await sync.execute({ name: 'populate_block_table', block });
+        await sync.execute({ name: 'populate_block_table', block, direction });
 
         // Sync transaction to database
-        await sync.execute({ name: 'populate_transaction_tables', block });
+        await sync.execute({ name: 'populate_transaction_tables', block, direction });
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.log('Stopping sync job processing due to error: ', err.message);
     }
   },
