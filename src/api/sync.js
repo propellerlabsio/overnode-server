@@ -123,7 +123,7 @@ const sync = {
         await sync.execute({ name: 'populate_block_table', block });
 
         // Sync transaction to database
-        await sync.execute({ name: 'sync_transaction', block });
+        await sync.execute({ name: 'populate_transaction_tables', block });
       }
     } catch (err) {
       // eslint-disable-next-line no-console

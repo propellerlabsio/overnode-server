@@ -96,7 +96,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
  * @param {*} block           Full block details provided by bitcoind
  * @param {*} knexTransaction knexTransaction object for db consistency
  */
-export default async function sync_transaction(block, knexTransaction) {
+export default async function populate_transaction_tables(block, knexTransaction) {
   // Can't get transactions for the genesis block
   if (block.height === 0) {
     return;

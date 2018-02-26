@@ -6,7 +6,9 @@ exports.up = function(knex, Promise) {
       table.renameColumn('function_name', 'name'),
       table.renameColumn('height', 'to_height'),
       table.integer('from_height').comment('Height of earliest block processed'),
-    ]);
+    ]).then(() => {
+      return knex(tableName).update('from_height', 0);
+    });
   });
 };
 

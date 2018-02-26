@@ -3,11 +3,11 @@
 /* eslint-disable camelcase                                                   */
 
 import populate_block_table from './populate_block_table';
-import sync_transaction from './sync_transaction';
+import populate_transaction_tables from './populate_transaction_tables';
 
 const functions = {
   populate_block_table,
-  sync_transaction,
+  populate_transaction_tables,
 };
 
 export default functions;
