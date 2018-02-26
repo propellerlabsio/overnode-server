@@ -10,7 +10,7 @@ import { knex } from '../../knex';
 // by default is configured to allow 16 concurrent calls from all processes
 // so we need to leave enough free for whatever other processes are hitting
 // bitcoind.
-const MAX_CONCURRENT_TRANSACTIONS = 2;
+const MAX_CONCURRENT_TRANSACTIONS = 6;
 
 /**
  * Pop the next txid off the stack and sync it.  Then call this procedure again.

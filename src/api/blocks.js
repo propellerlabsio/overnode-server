@@ -12,7 +12,7 @@ const blocks = {
   find: async ({ fromHeight, limit }) =>
     // Return query promise
     knex('block')
-      .where('height', '<=', fromHeight || liveData.broadcast.height.overnode)
+      .where('height', '<=', fromHeight || liveData.broadcast.height.overnode.to)
       .orderBy('height', 'desc')
       .limit(limit),
 };
