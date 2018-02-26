@@ -108,11 +108,25 @@ export default async function populate_transaction_tables(block, knexTransaction
     transaction_id,
   }));
 
+  // Split stack into separate arrays for each thread.  Not sure if necessary
+  // but there's a sporadic production bug that I can only put down to
+  // a problem with the virtual threads all popping the next transaction
+  // off of the same array
+  const transactionsPerVirtualThread = Math.ceil(stack.length / MAX_CONCURRENT_TRANSACTIONS);
+
   // Create array of concurrent promises
   const promises = [];
   for (let count = 0; count < MAX_CONCURRENT_TRANSACTIONS; count++) {
     const virtualThreadNumber = count + 1;
-    promises.push(syncTransactionFromStack(virtualThreadNumber, stack, block, knexTransaction));
+    const stackFromIndex = count * transactionsPerVirtualThread;
+    const stackToIndex = stackFromIndex + transactionsPerVirtualThread;
+    const stackPortion = stack.slice(stackFromIndex, stackToIndex);
+    promises.push(syncTransactionFromStack(
+      virtualThreadNumber,
+      stackPortion,
+      block,
+      knexTransaction,
+    ));
   }
 
   // Resolve all promises
