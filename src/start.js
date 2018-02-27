@@ -57,32 +57,36 @@ knex
         context: { knex },
         graphiql: (process.env.GRAPHIQL === 'on'),
       }));
+
+      // Start listening for requests
+      const htmlPort = process.env.PORT || 4000;
+      const expressServer = app.listen(htmlPort);
+      console.log(`Running a http server at localhost:${htmlPort}`);
+      console.log(`Running a GraphQL API server at localhost:${htmlPort}/graphql`);
+
+      // Reset any sync job errors so they can be reattempted/kicked off again
+      await sync.resetErrors();
+
+      // Start websockets server for handling live data feeds
+      socket(expressServer);
     } catch (err) {
       // Treat errors in any of these start up tasks as fatal
       console.error(err);
       process.exit(1);
     }
 
-    // Start listening for requests
-    const htmlPort = process.env.PORT || 4000;
-    const expressServer = app.listen(htmlPort);
-    console.log(`Running a http server at localhost:${htmlPort}`);
-    console.log(`Running a GraphQL API server at localhost:${htmlPort}/graphql`);
-
-    // Reset any sync job errors so they can be reattempted/kicked off again
-    await sync.resetErrors();
-
-    // Start backwards syncing asynchronously
-    sync.backSync();
-
-    // Start websockets server for handling live data feeds
-    socket(expressServer);
-
-    // Start main management process for continually monitoring bitcoind,
-    // compiling and broadcasting statistics over the websocket
-    startMain();
+    // Regular ongoing processing tasks
+    try {
+      // Start main management process for continually monitoring bitcoind,
+      // compiling and broadcasting statistics over the websocket
+      startMain();
+    } catch (err) {
+      // Misc error during regular processing. Log and play on
+      console.error(err);
+    }
   })
   .catch((err) => {
-    // Misc error - log and play on
+    // Migration error - treat as fatal
     console.error(err);
+    process.exit(1);
   });

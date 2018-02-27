@@ -8,6 +8,7 @@
 import { knex } from '../knex';
 import functions from './sync/functions';
 import { request as rpc } from '../rpc';
+import { middleTrim } from '../util/strings';
 
 const sync = {
 
@@ -79,7 +80,7 @@ const sync = {
         console.log('Backwards syncing complete');
       }
     } catch (err) {
-      console.error('Error back-syncing: ', err.message);
+      console.error('Error back-syncing: ', middleTrim(err.message, 256));
     }
   },
 
@@ -114,7 +115,7 @@ const sync = {
     }).catch(async (error) => {
       // If error in above db transaction, log to database.  Need to do this outside of
       // above db transaction
-      console.error(`Sync job '${name}' (direction: ${direction}) failed with error: ${error.message}`);
+      console.error(`Sync job '${name}' (direction: ${direction}) failed with error: ${middleTrim(error.message, 256)}`);
       await sync.update({
         name,
         errorHeight: block.height,
@@ -142,7 +143,7 @@ const sync = {
 
     if (errorHeight !== undefined) {
       updateValues.error_height = errorHeight;
-      updateValues.error_message = errorMessage.substring(0, 255);
+      updateValues.error_message = middleTrim(errorMessage, 255);
     }
 
     // Do update
@@ -175,7 +176,7 @@ const sync = {
         await sync.execute({ name: 'populate_transaction_tables', block, direction });
       }
     } catch (err) {
-      console.log('Stopping sync job processing due to error: ', err.message);
+      console.log('Stopping sync job processing due to error: ', middleTrim(err.message, 256));
     }
   },
 };
