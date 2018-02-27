@@ -258,5 +258,4 @@ export async function start() {
 
   // Check peer locations periodically
   checkPeerLocations();
-
 }
