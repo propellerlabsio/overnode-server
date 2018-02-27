@@ -77,9 +77,6 @@ knex
 
     // Regular ongoing processing tasks
     try {
-      // Start backwards syncing asynchronously
-      sync.backSync();
-
       // Start main management process for continually monitoring bitcoind,
       // compiling and broadcasting statistics over the websocket
       startMain();

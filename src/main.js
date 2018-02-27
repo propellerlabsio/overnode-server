@@ -248,10 +248,15 @@ async function main() {
   setTimeout(main, 500);
 }
 
-export function start() {
-  // Main loop
-  main();
+export async function start() {
+  // Main loop (await 1 full fun)
+  await main();
 
-  // Check peer locations
+  // Start backwards syncing after any priorty syncing has finished
+  // (first full run of main loop in await main() above).
+  sync.backSync();
+
+  // Check peer locations periodically
   checkPeerLocations();
+
 }
