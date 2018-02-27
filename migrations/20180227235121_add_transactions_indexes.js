@@ -13,7 +13,7 @@ exports.up = function(knex, Promise) {
 
 exports.down = function(knex, Promise) {
   return Promise.all([
-    knex.schema.table('output', table => table.dropIndex('transaction_id')),
-    knex.schema.table('output_address', table => table.dropIndex('transaction_ouput')),
+    knex.schema.table('output', table => table.dropIndex(['transaction_id'], 'transaction_id')),
+    knex.schema.table('output_address', table => table.dropIndex(['transaction_id', 'output_index'], 'transaction_ouput')),
   ]);
 };
