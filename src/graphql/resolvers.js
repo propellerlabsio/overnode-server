@@ -10,31 +10,40 @@ import peers from '../api/peers';
 import search from '../api/search';
 import transactions from '../api/transactions';
 
-function limitQuery(queryName, apiFunction, args) {
+function pagedQuery(apiFunction, args) {
+  const { paging } = args;
+
   // Validate limit
   const validatedLimit = limits.validate({
-    requested: args.limit,
-    context: queryName,
+    requested: paging.limit,
   });
 
+  // Offset needed but not required of user
+  const validatedOffset = paging.offset ?
+    paging.offset :
+    0;
+
   // Call requested API function
-  const validatedArgs = Object.assign(args, { limit: validatedLimit });
+  const validatedArgs = Object.assign(args, {
+    paging: {
+      offset: validatedOffset,
+      limit: validatedLimit,
+    },
+  });
   return apiFunction(validatedArgs);
 }
 
 const resolvers = {
   Address: {
-    transactions: ({ address }, args) => limitQuery('transactions', transactions.findByAddress, {
+    transactions: ({ address }, args) => pagedQuery(transactions.findByAddress, {
       address,
-      fromIndex: args.fromIndex,
-      limit: args.limit,
+      paging: args.paging,
     }),
   },
   Block: {
-    transactions: (block, args) => limitQuery('transactions', transactions.findByBlock, {
+    transactions: (block, args) => pagedQuery(transactions.findByBlock, {
       block,
-      fromIndex: args.fromIndex,
-      limit: args.limit,
+      paging: args.paging,
     }),
   },
   Peer: {
@@ -42,7 +51,7 @@ const resolvers = {
   },
   Query: {
     block: (root, args) => blocks.get(args),
-    blocks: (root, args) => limitQuery('blocks', blocks.find, args),
+    blocks: (root, args) => pagedQuery(blocks.find, args),
     host: (root, args) => host.get(args),
     sync: (root, args) => sync.find(args),
     node: (root, args) => node.get(args),
@@ -52,8 +61,8 @@ const resolvers = {
     search: (root, args) => search.simple(args),
   },
   Transaction: {
-    inputs: (transaction, args) => limitQuery('inputs', inputs.find, Object.assign(args, transaction)),
-    outputs: (transaction, args) => limitQuery('outputs', outputs.find, Object.assign(args, transaction)),
+    inputs: (transaction, args) => pagedQuery(inputs.find, Object.assign(args, transaction)),
+    outputs: (transaction, args) => pagedQuery(outputs.find, Object.assign(args, transaction)),
   },
   TransactionOutput: {
     addresses: output => addresses.findByOutput(output),

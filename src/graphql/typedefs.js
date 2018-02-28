@@ -7,7 +7,7 @@
 const typeDefs = `
     type Address {
       address: String!
-      transactions(fromIndex: Int = 0, limit: Int): [Transaction]
+      transactions(paging: Paging): [Transaction]
     }
 
     type Block {
@@ -17,7 +17,7 @@ const typeDefs = `
       time: Int!
       tx_count: Int!
       interval: Int!
-      transactions(fromIndex: Int = 0, limit: Int): [Transaction]
+      transactions(paging: Paging): [Transaction]
     }
 
     type CPU {
@@ -80,6 +80,11 @@ const typeDefs = `
       as: String
     }
 
+    input Paging {
+      limit: Int
+      offset: Int
+    }
+
     type Peer {
       id: Int!
       addr: String!
@@ -109,7 +114,7 @@ const typeDefs = `
     type Query {
         block(hash: String, height: Int): Block!
 
-        blocks(fromHeight: Int, limit: Int): [Block],
+        blocks(paging: Paging): [Block],
 
         host: Host!
 
@@ -141,8 +146,8 @@ const typeDefs = `
       time: Int!
       input_count: Int!
       output_count: Int!
-      inputs(fromIndex: Int = 0, limit: Int): [TransactionInput]
-      outputs(fromIndex: Int = 0, limit: Int): [TransactionOutput]
+      inputs(paging: Paging): [TransactionInput]
+      outputs(paging: Paging): [TransactionOutput]
     }
 
     type TransactionInput {

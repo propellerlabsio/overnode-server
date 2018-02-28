@@ -10,19 +10,19 @@ const transactions = {
     knex('transaction')
       .where('transaction_id', transaction_id)
       .first(),
-  findByAddress: ({ address, fromIndex, limit }) =>
+  findByAddress: ({ address, paging }) =>
     knex('output_address')
       .select('transaction.*')
       .innerJoin('transaction', 'transaction.transaction_id', 'output_address.transaction_id')
       .where('output_address.address', address)
-      .andWhere('transaction.transaction_index', '>=', fromIndex)
-      .limit(limit)
+      .andWhere('transaction.transaction_index', '>=', paging.offset)
+      .limit(paging.limit)
       .orderBy('transaction_index'),
-  findByBlock: ({ block, fromIndex, limit }) =>
+  findByBlock: ({ block, paging }) =>
     knex('transaction')
       .where('block_hash', block.hash)
-      .andWhere('transaction_index', '>=', fromIndex)
-      .limit(limit)
+      .andWhere('transaction_index', '>=', paging.offset)
+      .limit(paging.limit)
       .orderBy('transaction_index'),
 };
 

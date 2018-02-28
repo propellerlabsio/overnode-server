@@ -9,12 +9,14 @@ const blocks = {
       .where(indexField, indexValue);
     return summary;
   },
-  find: async ({ fromHeight, limit }) =>
+  find: async ({ paging }) => {
     // Return query promise
-    knex('block')
-      .where('height', '<=', fromHeight || liveData.broadcast.height.overnode.to)
+    const fromHeight = liveData.broadcast.height.overnode.to - paging.offset;
+    return knex('block')
+      .where('height', '<=', fromHeight)
       .orderBy('height', 'desc')
-      .limit(limit),
+      .limit(paging.limit);
+  },
 };
 
 export default blocks;
