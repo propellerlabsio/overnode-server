@@ -7,7 +7,7 @@ import { knex } from '../knex';
 
 const inputs = {
   find: ({ transaction_id, paging }) =>
-    knex('input')
+    knex('input_staging')
       .where('transaction_id', transaction_id)
       .andWhere('input_index', '>=', paging.offset)
       .limit(paging.limit)

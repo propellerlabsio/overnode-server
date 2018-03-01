@@ -254,7 +254,7 @@ export async function start() {
 
   // Start backwards syncing after any priorty syncing has finished
   // (first full run of main loop in await main() above).
-  sync.backSync();
+  // sync.backSync();
 
   // Check peer locations periodically
   checkPeerLocations();

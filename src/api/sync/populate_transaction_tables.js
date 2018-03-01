@@ -44,12 +44,11 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
     const inputs = rawTx.vin.map((input, index) => ({
       transaction_id: rawTx.txid,
       input_index: index,
-      block_hash: block.hash,
       coinbase: input.coinbase,
       output_transaction_id: input.txid,
       output_index: input.vout,
     }));
-    await knex.insert(inputs).into('input').transacting(knexTransaction);
+    await knex.insert(inputs).into('input_staging').transacting(knexTransaction);
 
     // Insert transaction outputs into database.  Note that unlike a regular insert,
     // we are using a db transaction which means we can't get back the id field
