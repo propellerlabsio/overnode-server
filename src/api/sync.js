@@ -98,8 +98,6 @@ const sync = {
         direction,
       });
     } catch (error) {
-      console.error(`Sync job '${name}' (direction: ${direction}) failed with error: ${middleTrim(error.message, 256)}`);
-
       // Log error and play on
       await sync.logError({
         height: block.height,
