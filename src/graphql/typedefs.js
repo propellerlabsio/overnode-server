@@ -55,14 +55,6 @@ const typeDefs = `
       walletversion: Int!      
     }
 
-    type SyncJob {
-      name: String!
-      from_height: Int
-      to_height: Int
-      error_height: Int
-      error_message: String
-    }
-
     type Location {
       address: String
       country: String
@@ -114,13 +106,15 @@ const typeDefs = `
     type Query {
         block(hash: String, height: Int): Block!
 
-        blocks(paging: Paging): [Block],
+        blocks(paging: Paging): [Block]
 
         host: Host!
 
         node: Node!
 
-        sync(onlyJobsInError: Boolean): [SyncJob]
+        sync: [SyncJob]
+
+        sync_error(paging: Paging): [SyncError]
 
         peer(id: Int!): Peer
 
@@ -135,6 +129,18 @@ const typeDefs = `
       block: Block
       transaction: Transaction
       address: Address
+    }
+
+    type SyncJob {
+      name: String!
+      from_height: Int
+      to_height: Int
+    }
+
+    type SyncError {
+      height: Int!
+      name: String!
+      message: String
     }
 
     # A single bitcoin transaction.

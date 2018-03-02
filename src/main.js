@@ -107,8 +107,8 @@ async function main() {
   // Set server time for data age
   liveData.broadcast.time = new Date();
 
-  // Get number of sync jobs in error
-  const [{ count }] = await knex('sync').count('name').whereNotNull('error_message');
+  // Get number of sync blocks in error
+  const [{ count }] = await knex('sync_error').count('name');
   liveData.broadcast.syncInErrorCount = Number(count);
 
   // Keep core status information in importable variable for other processes

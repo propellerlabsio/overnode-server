@@ -17,9 +17,8 @@ const MAX_CONCURRENT_TRANSACTIONS = 6;
  *
  * @param {*} stack           Stack of transaction ids
  * @param {*} block           Block details
- * @param {*} knexTransaction Knex (not bitcoin) transaction for db consistency
  */
-async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTransaction) {
+async function syncTransactionFromStack(virtualThreadNo, stack, block) {
   let promise;
 
   const transaction = stack.pop();
@@ -38,7 +37,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
       time: rawTx.time,
       input_count: rawTx.vin.length,
       output_count: rawTx.vout.length,
-    }).transacting(knexTransaction);
+    });
 
     // Insert transaction inputs into database.
     const inputs = rawTx.vin.map((input, index) => ({
@@ -48,7 +47,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
       output_transaction_id: input.txid,
       output_index: input.vout,
     }));
-    await knex.insert(inputs).into('input_staging').transacting(knexTransaction);
+    await knex.insert(inputs).into('input_staging');
 
     // Insert transaction outputs into database.  Note that unlike a regular insert,
     // we are using a db transaction which means we can't get back the id field
@@ -58,7 +57,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
       output_index: output.n,
       value: output.value,
     }));
-    await knex.insert(outputs).into('output').transacting(knexTransaction);
+    await knex.insert(outputs).into('output');
 
     // Insert output addresses into database.  We need to repeat the
     // transaction and output number in this table because we can't
@@ -79,10 +78,10 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
 
       return accumulator;
     }, []);
-    await knex('output_address').insert(addresses).transacting(knexTransaction);
+    await knex('output_address').insert(addresses);
 
     // Use recursion to keep processing until stack is exhuasted
-    promise = syncTransactionFromStack(virtualThreadNo, stack, block, knexTransaction);
+    promise = syncTransactionFromStack(virtualThreadNo, stack, block);
   }
 
   return promise;
@@ -93,9 +92,8 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block, knexTrans
  * with details of transactions in the provided block
  *
  * @param {*} block           Full block details provided by bitcoind
- * @param {*} knexTransaction knexTransaction object for db consistency
  */
-export default async function populate_transaction_tables(block, knexTransaction) {
+export default async function populate_transaction_tables(block) {
   // Can't get transactions for the genesis block
   if (block.height === 0) {
     return;
@@ -124,7 +122,6 @@ export default async function populate_transaction_tables(block, knexTransaction
       virtualThreadNumber,
       stackPortion,
       block,
-      knexTransaction,
     ));
   }
 

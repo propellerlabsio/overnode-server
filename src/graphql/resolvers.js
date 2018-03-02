@@ -11,7 +11,7 @@ import search from '../api/search';
 import transactions from '../api/transactions';
 
 function pagedQuery(apiFunction, args) {
-  const { paging } = args;
+  const paging = args.paging || { paging: { offset: null, limit: null } };
 
   // Validate limit
   const validatedLimit = limits.validate({
@@ -53,12 +53,13 @@ const resolvers = {
     block: (root, args) => blocks.get(args),
     blocks: (root, args) => pagedQuery(blocks.find, args),
     host: (root, args) => host.get(args),
-    sync: (root, args) => sync.find(args),
     node: (root, args) => node.get(args),
     peer: (root, args) => peers.get(args),
     peers: (root, args) => peers.find(args),
     transaction: (root, args) => transactions.get(args),
     search: (root, args) => search.simple(args),
+    sync: (root, args) => sync.find(args),
+    sync_error: (root, args) => pagedQuery(sync.findError, args),
   },
   Transaction: {
     inputs: (transaction, args) => pagedQuery(inputs.find, Object.assign(args, transaction)),

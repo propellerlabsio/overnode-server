@@ -9,9 +9,8 @@ import { knex } from '../../knex';
  * Populates the database table 'block' with details of the provided block
  *
  * @param {*} block           Full block details provided by bitcoind
- * @param {*} knexTransaction knexTransaction object for db consistency
  */
-export default async function populate_block_table(block, knexTransaction) {
+export default async function populate_block_table(block) {
   // Determine value of calculated field: time interval between this block and the last
   let interval = 0;
   if (block.height > 0) {
@@ -31,5 +30,5 @@ export default async function populate_block_table(block, knexTransaction) {
     time: block.time,
     interval,
     tx_count: block.tx.length,
-  }).transacting(knexTransaction);
+  });
 }
