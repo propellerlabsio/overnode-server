@@ -7,6 +7,12 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Backsync",
+      "program": "${workspaceFolder}\\backSync.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "preLaunchTask": "build",
       "name": "Build and run",
       "program": "${workspaceFolder}\\index.js"
