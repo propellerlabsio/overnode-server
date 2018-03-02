@@ -98,6 +98,14 @@ Set to `on` to make GraphiQL (A graphical interactive in-browser GraphQL IDE) av
 
 If you would like to receive donations for hosting this service, put your Bitcoin address here.
 
+### JWT_SIGNING_KEY
+
+A random secret used to sign JSON Web Tokens.
+
+### HASH_PASSWORD_ITERATIONS
+
+Number of iterations to use when hashing a password before storing it in the database.  Higher numbers are more secure but take longer and consume more CPU.
+
 ## API conventions
 
 ### Generic methods
