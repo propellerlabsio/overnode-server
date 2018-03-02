@@ -171,6 +171,14 @@ const typeDefs = `
       value: Float
       addresses: [String]
     }
+
+    type Mutation {
+      # Create a new user account
+      createUser(email: String!, password: String!): Boolean!
+
+      # Request an access token for a given email / password
+      requestToken(email: String!, password: String!, permanent: Boolean = false): String    
+    }
 `;
 
 export default typeDefs;

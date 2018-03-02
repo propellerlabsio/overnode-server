@@ -9,6 +9,7 @@ import outputs from '../api/outputs';
 import peers from '../api/peers';
 import search from '../api/search';
 import transactions from '../api/transactions';
+import users from '../api/users';
 
 function pagedQuery(apiFunction, args) {
   const paging = args.paging || { paging: { offset: null, limit: null } };
@@ -45,6 +46,10 @@ const resolvers = {
       block,
       paging: args.paging,
     }),
+  },
+  Mutation: {
+    createUser: (root, args) => users.create(args),
+    requestToken: (root, args) => users.getToken(args),
   },
   Peer: {
     location: peer => peers.location(peer),
