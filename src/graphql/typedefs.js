@@ -7,7 +7,7 @@
 const typeDefs = `
     type Address {
       address: String!
-      transactions(fromIndex: Int = 0, limit: Int): [Transaction]
+      transactions(paging: Paging): [Transaction]
     }
 
     type Block {
@@ -17,7 +17,7 @@ const typeDefs = `
       time: Int!
       tx_count: Int!
       interval: Int!
-      transactions(fromIndex: Int = 0, limit: Int): [Transaction]
+      transactions(paging: Paging): [Transaction]
     }
 
     type CPU {
@@ -55,14 +55,6 @@ const typeDefs = `
       walletversion: Int!      
     }
 
-    type SyncJob {
-      name: String!
-      from_height: Int
-      to_height: Int
-      error_height: Int
-      error_message: String
-    }
-
     type Location {
       address: String
       country: String
@@ -78,6 +70,11 @@ const typeDefs = `
       isp: String
       org: String
       as: String
+    }
+
+    input Paging {
+      limit: Int
+      offset: Int
     }
 
     type Peer {
@@ -109,13 +106,15 @@ const typeDefs = `
     type Query {
         block(hash: String, height: Int): Block!
 
-        blocks(fromHeight: Int, limit: Int): [Block],
+        blocks(paging: Paging): [Block]
 
         host: Host!
 
         node: Node!
 
-        sync(onlyJobsInError: Boolean): [SyncJob]
+        sync: [SyncJob]
+
+        sync_error(paging: Paging): [SyncError]
 
         peer(id: Int!): Peer
 
@@ -132,6 +131,18 @@ const typeDefs = `
       address: Address
     }
 
+    type SyncJob {
+      name: String!
+      from_height: Int
+      to_height: Int
+    }
+
+    type SyncError {
+      height: Int!
+      name: String!
+      message: String
+    }
+
     # A single bitcoin transaction.
     type Transaction {
       transaction_id: String!
@@ -141,8 +152,8 @@ const typeDefs = `
       time: Int!
       input_count: Int!
       output_count: Int!
-      inputs(fromIndex: Int = 0, limit: Int): [TransactionInput]
-      outputs(fromIndex: Int = 0, limit: Int): [TransactionOutput]
+      inputs(paging: Paging): [TransactionInput]
+      outputs(paging: Paging): [TransactionOutput]
     }
 
     type TransactionInput {
@@ -159,6 +170,14 @@ const typeDefs = `
       output_index: Int
       value: Float
       addresses: [String]
+    }
+
+    type Mutation {
+      # Create a new user account
+      createUser(email: String!, password: String!): Boolean!
+
+      # Request an access token for a given email / password
+      requestToken(email: String!, password: String!, permanent: Boolean = false): String    
     }
 `;
 

@@ -107,8 +107,8 @@ async function main() {
   // Set server time for data age
   liveData.broadcast.time = new Date();
 
-  // Get number of sync jobs in error
-  const [{ count }] = await knex('sync').count('name').whereNotNull('error_message');
+  // Get number of sync blocks in error
+  const [{ count }] = await knex('sync_error').count('name');
   liveData.broadcast.syncInErrorCount = Number(count);
 
   // Keep core status information in importable variable for other processes
@@ -168,33 +168,30 @@ async function main() {
   liveData.broadcast.height.overnode.from = from;
   liveData.broadcast.height.overnode.to = to;
 
-  // If database is behind bitcoind, trigger sync jobs unless we
-  // are in an error state.
-  if (!liveData.broadcast.syncInErrorCount) {
-    if (liveData.broadcast.height.bitcoind > liveData.broadcast.height.overnode.to) {
-      // If we are very far behind, go into "prioritySyncing" mode where we continually
-      // process blocks until we are caught up and all other services will be degraded.
-      const behindBy = liveData.broadcast.height.bitcoind - liveData.broadcast.height.overnode.to;
-      if (behindBy > 6) {
-        console.log(`Database is ${behindBy} blocks behind. Entering prioritySyncing mode; other services will be suspended/degraded.`);
+  // If database is behind bitcoind, trigger sync jobs
+  if (liveData.broadcast.height.bitcoind > liveData.broadcast.height.overnode.to) {
+    // If we are very far behind, go into "prioritySyncing" mode where we continually
+    // process blocks until we are caught up and all other services will be degraded.
+    const behindBy = liveData.broadcast.height.bitcoind - liveData.broadcast.height.overnode.to;
+    if (behindBy > 6) {
+      console.log(`Database is ${behindBy} blocks behind. Entering prioritySyncing mode; other services will be suspended/degraded.`);
 
-        // Signal clients that we are in priortySyncing mode
-        liveData.broadcast.prioritySyncing = true;
+      // Signal clients that we are in priortySyncing mode
+      liveData.broadcast.prioritySyncing = true;
 
-        // Process all blocks that we haven't yet synced (forward direction only)
-        const fromHeight = liveData.broadcast.height.overnode.to + 1;
-        const toHeight = liveData.broadcast.height.bitcoind;
-        await sync.process({ fromHeight, toHeight, direction: sync.FORWARD });
+      // Process all blocks that we haven't yet synced (forward direction only)
+      const fromHeight = liveData.broadcast.height.overnode.to + 1;
+      const toHeight = liveData.broadcast.height.bitcoind;
+      await sync.process({ fromHeight, toHeight, direction: sync.FORWARD });
 
-        // Signal to clients that prioritySyncing has finished
-        liveData.broadcast.prioritySyncing = false;
-        console.log('Leaving prioritySyncing mode.');
-      } else {
-        // Regular processing, only one block at a time
-        const fromHeight = liveData.broadcast.height.overnode.to + 1;
-        const toHeight = fromHeight;
-        await sync.process({ fromHeight, toHeight, direction: sync.FORWARD });
-      }
+      // Signal to clients that prioritySyncing has finished
+      liveData.broadcast.prioritySyncing = false;
+      console.log('Leaving prioritySyncing mode.');
+    } else {
+      // Regular processing, only one block at a time
+      const fromHeight = liveData.broadcast.height.overnode.to + 1;
+      const toHeight = fromHeight;
+      await sync.process({ fromHeight, toHeight, direction: sync.FORWARD });
     }
   }
 
@@ -248,13 +245,9 @@ async function main() {
   setTimeout(main, 500);
 }
 
-export async function start() {
-  // Main loop (await 1 full fun)
-  await main();
-
-  // Start backwards syncing after any priorty syncing has finished
-  // (first full run of main loop in await main() above).
-  sync.backSync();
+export function start() {
+  // Main loop
+  main();
 
   // Check peer locations periodically
   checkPeerLocations();

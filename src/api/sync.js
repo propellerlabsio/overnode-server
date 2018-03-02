@@ -25,33 +25,19 @@ const sync = {
   },
 
   /**
-   * Return all sync jobs matching options
+   * Return all sync jobs
    */
-  find: ({ onlyJobsInError }) => {
-    let query = knex('sync').select();
-    if (onlyJobsInError) {
-      query = query.whereNotNull('error_message');
-    }
-    return query;
-  },
+  find: () => knex('sync').select(),
 
   /**
-   * Reset the error status of all sync jobs.
-   *
-   * This can be useful on server restart so that jobs will be reattempted at least once.
-   * This allows the admin to fix any underlying issues and restart the server without having
-   * to update flags in database fields.
+   * Return all sync errors matching criteria
    */
-  resetErrors: async () => {
-    await knex('sync')
-      .whereNotNull('error_height')
-      .update({
-        error_height: null,
-        error_message: null,
-      });
-
-    console.info('Error state of sync jobs has been reset for reattempting');
-  },
+  findError: ({ paging }) =>
+    knex('sync_error')
+      .select()
+      .offset(paging.offset)
+      .limit(paging.limit)
+      .orderBy('height'),
 
   /**
    * Backwards sync any jobs that have a from-height of greater than zero.
@@ -87,50 +73,86 @@ const sync = {
   /**
    * Execute a given sync job with a given block
    */
-  execute: async ({ name, block, direction }) => {
-    // Do database changes in a knex/db transaction.
-    await knex.transaction((knexTransaction) => {
-      return sync
-        .get({ name })
-        .then(async (job) => {
-          let result;
-          const alreadySynced = block.height >= job.from_height && block.height <= job.to_height;
-          if (job.error_height === null && !alreadySynced) {
-            await functions[job.name](block, knexTransaction);
-            await sync.update({
-              name,
-              newHeight: block.height,
-              direction,
-              knexTransaction,
-            }).transacting(knexTransaction);
-            result = knexTransaction.commit();
-          } else {
-            result = null;
-          }
-          return result;
-        })
-        .catch(async (error) => {
-          await knexTransaction.rollback(error);
-        });
-    }).catch(async (error) => {
-      // If error in above db transaction, log to database.  Need to do this outside of
-      // above db transaction
-      console.error(`Sync job '${name}' (direction: ${direction}) failed with error: ${middleTrim(error.message, 256)}`);
+  execute: async ({ name, block, direction, reprocess = false }) => {
+    try {
+      // Get sync job details
+      const job = await sync.get({ name });
+      if (!reprocess) {
+        // Check this block is outside of range already processed
+        if (block.height >= job.from_height && block.height <= job.to_height) {
+          // Already processed this block and no reprocess requested so exit
+          return;
+        }
+      }
+
+      // Execute sync job
+      await functions[name](block);
+
+      // If we get this far, clear any previous errors
+      await sync.clearError(block.height);
+
+      // Record block as processed so next block can be picked up
       await sync.update({
         name,
-        errorHeight: block.height,
-        errorMessage: error.message,
+        newHeight: block.height,
+        direction,
+      });
+    } catch (error) {
+      console.error(`Sync job '${name}' (direction: ${direction}) failed with error: ${middleTrim(error.message, 256)}`);
+
+      // Log error and play on
+      await sync.logError({
+        height: block.height,
+        name,
+        message: error.message,
+      });
+
+      // Record block as attempted so next block can be picked up
+      await sync.update({
+        name,
+        newHeight: block.height,
+        direction,
       });
 
       // Rethrow error to caller
       throw error;
-    });
+    }
+  },
+
+  logError: async ({ height, name, message }) => {
+    const table = knex('sync_error');
+    const trimmedMessage = middleTrim(message, 255);
+
+    // May have prexisting error from previous attempt - need to find as knex doesn't do upserts
+    const existing = await table.where('height', height).first();
+
+    // Update or insert new error
+    if (existing) {
+      await table
+        .where('height', height)
+        .update({
+          name,
+          message: trimmedMessage,
+        });
+    } else {
+      await table.insert({
+        height,
+        name,
+        message: trimmedMessage,
+      });
+    }
+  },
+
+  clearError(height) {
+    return knex('sync_error')
+      .where('height', height)
+      .delete();
   },
 
   /**
    * Update sync job details in the database
    */
-  update: ({ name, newHeight, direction, errorHeight, errorMessage }) => {
+  update: ({ name, newHeight, direction }) => {
     const updateValues = {};
 
     if (newHeight !== undefined) {
@@ -139,11 +161,6 @@ const sync = {
       } else {
         updateValues.from_height = newHeight;
       }
-    }
-
-    if (errorHeight !== undefined) {
-      updateValues.error_height = errorHeight;
-      updateValues.error_message = middleTrim(errorMessage, 255);
     }
 
     // Do update
@@ -162,10 +179,10 @@ const sync = {
       throw new Error('Invalid or no sync direction provided.');
     }
 
-    // Process blocks
-    try {
-      // For each block in range
-      for (let height = fromHeight; height !== (toHeight + direction); height += direction) {
+    // Process blocks unless/until we hit MAX_ERRORS
+    // For each block in range
+    for (let height = fromHeight; height !== (toHeight + direction); height += direction) {
+      try {
         // Get block.
         const block = await rpc('getblock', height.toString());
 
@@ -174,9 +191,9 @@ const sync = {
 
         // Sync transaction to database
         await sync.execute({ name: 'populate_transaction_tables', block, direction });
+      } catch (err) {
+        console.log(`Sync skipping block ${height} due to error: ${middleTrim(err.message, 256)}`);
       }
-    } catch (err) {
-      console.log('Stopping sync job processing due to error: ', middleTrim(err.message, 256));
     }
   },
 };

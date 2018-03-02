@@ -6,11 +6,11 @@
 import { knex } from '../knex';
 
 const outputs = {
-  find: ({ transaction_id, fromIndex, limit }) =>
+  find: ({ transaction_id, paging }) =>
     knex('output')
       .where('transaction_id', transaction_id)
-      .andWhere('output_index', '>=', fromIndex)
-      .limit(limit)
+      .andWhere('output_index', '>=', paging.offset)
+      .limit(paging.limit)
       .orderBy('output_index'),
 };
 
