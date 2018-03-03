@@ -1,7 +1,7 @@
 import nJwt from 'njwt';
 import validator from 'validator';
 import * as util from './user/util';
-import knex from '../knex';
+import { knex } from '../knex';
 
 const users = {
   async create({ email, password }) {
