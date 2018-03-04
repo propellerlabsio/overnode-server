@@ -5,7 +5,8 @@ const peers = {
   get: ({ id }) => liveData.rpc.peers.find(peer => peer.id === id),
   find: () => liveData.rpc.peers,
   location: async ({ addr }) => {
-    const [location] = await knex('peer').where('address', addr);
+    const ipAddress = addr.split(':')[0];
+    const [location] = await knex('geolocation').where('ip_address', ipAddress);
     return location;
   },
 };
