@@ -163,6 +163,7 @@ const typeDefs = `
       coinbase: String
       output_transaction_id: String
       output_index: Int
+      output_value: Float
     }
 
     type TransactionOutput {
