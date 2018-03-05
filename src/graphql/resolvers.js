@@ -36,7 +36,11 @@ function pagedQuery(apiFunction, args) {
 
 const resolvers = {
   Address: {
-    transactions: ({ address }, args) => pagedQuery(transactions.findByAddress, {
+    received: ({ address }, args) => pagedQuery(outputs.findByAddress, {
+      address,
+      paging: args.paging,
+    }),
+    spent: ({ address }, args) => pagedQuery(inputs.findByAddress, {
       address,
       paging: args.paging,
     }),
@@ -55,6 +59,7 @@ const resolvers = {
     location: peer => peers.location(peer),
   },
   Query: {
+    address: (root, args) => addresses.get(args),
     block: (root, args) => blocks.get(args),
     blocks: (root, args) => pagedQuery(blocks.find, args),
     host: (root, args) => host.get(args),

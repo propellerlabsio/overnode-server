@@ -12,6 +12,14 @@ const outputs = {
       .andWhere('output_index', '>=', paging.offset)
       .limit(paging.limit)
       .orderBy('output_index'),
+  findByAddress: ({ address, paging }) =>
+    knex('output_address')
+      .select('output.*')
+      .innerJoin('output', 'output.transaction_id', 'output_address.transaction_id')
+      .where('output_address.address', address)
+      .orderBy('output.value', 'DESC')
+      .offset(paging.offset)
+      .limit(paging.limit),
 };
 
 export default outputs;

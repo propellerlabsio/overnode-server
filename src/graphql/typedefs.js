@@ -7,7 +7,8 @@
 const typeDefs = `
     type Address {
       address: String!
-      transactions(paging: Paging): [Transaction]
+      received(paging: Paging): [TransactionOutput]
+      spent(paging: Paging): [TransactionInput]
     }
 
     type Block {
@@ -104,6 +105,8 @@ const typeDefs = `
     }
 
     type Query {
+        address(address: String!): Address
+
         block(hash: String, height: Int): Block!
 
         blocks(paging: Paging): [Block]
