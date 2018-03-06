@@ -9,9 +9,9 @@ const outputs = {
   find: ({ transaction_id, paging }) =>
     knex('output')
       .where('transaction_id', transaction_id)
-      .andWhere('output_index', '>=', paging.offset)
+      .andWhere('output_number', '>=', paging.offset)
       .limit(paging.limit)
-      .orderBy('output_index'),
+      .orderBy('output_number'),
   findByAddress: ({ address, paging }) =>
     knex('output_address')
       .select('output.*')

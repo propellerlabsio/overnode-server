@@ -183,7 +183,7 @@ async function main() {
     // If we are very far behind, go into "prioritySyncing" mode where we continually
     // process blocks until we are caught up and all other services will be degraded.
     const behindBy = liveData.broadcast.height.bitcoind - liveData.broadcast.height.overnode.to;
-    if (behindBy > 6) {
+    if (behindBy > 6 && process.env.NO_PRIORITY_SYNCING !== 'yes') {
       console.log(`Database is ${behindBy} blocks behind. Entering prioritySyncing mode; other services will be suspended/degraded.`);
 
       // Signal clients that we are in priortySyncing mode

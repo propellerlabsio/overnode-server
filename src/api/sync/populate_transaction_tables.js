@@ -42,10 +42,10 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     // Insert transaction inputs into database.
     const inputs = rawTx.vin.map((input, index) => ({
       transaction_id: rawTx.txid,
-      input_index: index,
+      input_number: index,
       coinbase: input.coinbase,
       output_transaction_id: input.txid,
-      output_index: input.vout,
+      output_number: input.vout,
     }));
     await knex.insert(inputs).into('input_staging');
 
@@ -54,7 +54,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     // values of the inserted records
     const outputs = rawTx.vout.map(output => ({
       transaction_id: rawTx.txid,
-      output_index: output.n,
+      output_number: output.n,
       value: output.value,
     }));
     await knex.insert(outputs).into('output');
@@ -70,7 +70,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
         rawAddresses.forEach((rawAddress) => {
           results.push({
             transaction_id: output.transaction_id,
-            output_index: output.output_index,
+            output_number: output.output_number,
             address: rawAddress.substr(12), // ditch 'bitcoincash:' prefix
           });
         });
