@@ -10,11 +10,11 @@ const addresses = {
     knex('output_address')
       .where('address', address)
       .first(),
-  findByOutput: ({ transaction_id, output_index }) =>
+  findByOutput: ({ transaction_id, output_number }) =>
     knex('output_address')
       .select('address')
       .where('transaction_id', transaction_id)
-      .andWhere('output_index', output_index)
+      .andWhere('output_number', output_number)
       .map(row => row.address),
 };
 

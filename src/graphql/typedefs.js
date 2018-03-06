@@ -161,17 +161,17 @@ const typeDefs = `
 
     type TransactionInput {
       transaction_id: String!
-      input_index: Int!
+      input_number: Int!
       block_hash: String
       coinbase: String
       output_transaction_id: String
-      output_index: Int
+      output_number: Int
       output_value: Float
     }
 
     type TransactionOutput {
       transaction_id: String!
-      output_index: Int
+      output_number: Int
       value: Float
       addresses: [String]
     }

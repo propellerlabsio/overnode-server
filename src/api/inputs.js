@@ -10,27 +10,28 @@ const inputs = {
     knex('input_staging')
       .select('input_staging.*', 'output.value as output_value')
       .where('input_staging.transaction_id', transaction_id)
-      .andWhere('input_staging.input_index', '>=', paging.offset)
+      .andWhere('input_staging.input_number', '>=', paging.offset)
       .limit(paging.limit)
-      .orderBy('input_index')
+      .orderBy('input_number')
       .leftJoin('output', {
         'output.transaction_id': 'input_staging.output_transaction_id',
-        'output.output_index': 'input_staging.output_index',
+        'output.output_number': 'input_staging.output_number',
       }),
   findByAddress: ({ address, paging }) =>
-    knex('output_address')
-      .where('output_address.address', address)
+    knex
+      .select('input_staging.*', 'output.value as output_value')
+      .from('output_address')
       .join('output', {
         'output.transaction_id': 'output_address.transaction_id',
-        'output.output_index': 'output_address.output_index',
+        'output.output_number': 'output_address.output_number',
       })
       .join('input_staging', {
         'output.transaction_id': 'input_staging.output_transaction_id',
-        'output.output_index': 'input_staging.output_index',
+        'output.output_number': 'input_staging.output_number',
       })
-      .select('input_staging.*', 'output.value as output_value')
-      .andWhere('input_staging.input_index', '>=', paging.offset)
-      .orderBy('output.value')
+      .where('output_address.address', address)
+      .offset(paging.offset)
+      .orderBy('output.value', 'DESC')
       .limit(paging.limit)
       .offset(paging.offset),
 };
