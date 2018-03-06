@@ -106,6 +106,10 @@ A random secret used to sign JSON Web Tokens.
 
 Number of iterations to use when hashing a password before storing it in the database.  Higher numbers are more secure but take longer and consume more CPU.
 
+### NO_PRIORITY_SYNCING
+
+Mostly a developer option, if set to 'yes' then priority syncing will be disabled.  Priority syncing mode is entered when the server discovers that the overnode database is more than an hour or so behind the bitcoin blockchain.  In this mode, changes to live update / broadcast data are suspended while overnode catches up.
+
 ## API conventions
 
 ### Generic methods
