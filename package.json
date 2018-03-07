@@ -2,6 +2,7 @@
   "name": "overnode-server",
   "version": "1.2.6",
   "description": "Overnode Server",
+  "private": true,
   "main": "index.js",
   "dependencies": {
     "axios": "^0.17.1",
@@ -28,7 +29,7 @@
     "build": "babel src -d dist --copy-files",
     "dev": "npm run build && node index",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postversion": "git push && git push --tags && npm publish"
+    "postversion": "git push && git push --tags"
   },
   "author": "Peter Roehlen, propellerlabs.com",
   "license": "MIT"

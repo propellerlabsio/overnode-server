@@ -15,7 +15,10 @@ const outputs = {
   findByAddress: ({ address, paging }) =>
     knex('output_address')
       .select('output.*')
-      .innerJoin('output', 'output.transaction_id', 'output_address.transaction_id')
+      .innerJoin('output', {
+        'output.transaction_id': 'output_address.transaction_id',
+        'output.output_number': 'output_address.output_number',
+      })
       .where('output_address.address', address)
       .orderBy('output.value', 'DESC')
       .offset(paging.offset)
