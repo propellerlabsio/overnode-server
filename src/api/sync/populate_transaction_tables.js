@@ -29,7 +29,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
 
     // Insert transaction into database
     // console.debug(`Virtual thread ${virtualThreadNo} Inserting transaction ${txid}`);
-    await knex('transaction').insert({
+    const insertTransactions = knex('transaction').insert({
       transaction_id: rawTx.txid,
       transaction_index: transaction.index,
       size: rawTx.size,
@@ -47,7 +47,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
       output_transaction_id: input.txid,
       output_number: input.vout,
     }));
-    await knex.insert(inputs).into('input_staging');
+    const insertInputs = knex.insert(inputs).into('input_staging');
 
     // Insert transaction outputs into database.  Note that unlike a regular insert,
     // we are using a db transaction which means we can't get back the id field
@@ -57,7 +57,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
       output_number: output.n,
       value: output.value,
     }));
-    await knex.insert(outputs).into('output');
+    const insertOutputs = knex.insert(outputs).into('output');
 
     // Insert output addresses into database.  We need to repeat the
     // transaction and output number in this table because we can't
@@ -78,7 +78,15 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
 
       return accumulator;
     }, []);
-    await knex('output_address').insert(addresses);
+    const insertAddresses = knex('output_address').insert(addresses);
+
+    // Do inserts in parallel
+    await Promise.all([
+      insertTransactions,
+      insertInputs,
+      insertOutputs,
+      insertAddresses,
+    ]);
 
     // Use recursion to keep processing until stack is exhuasted
     promise = syncTransactionFromStack(virtualThreadNo, stack, block);
