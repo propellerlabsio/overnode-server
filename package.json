@@ -1,6 +1,6 @@
 {
   "name": "overnode-server",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Overnode Server",
   "private": true,
   "main": "index.js",
