@@ -12,7 +12,7 @@ const transactions = {
       .first(),
   findByBlock: ({ block, paging }) =>
     knex('transaction')
-      .where('block_hash', block.hash)
+      .where('block_height', block.height)
       .andWhere('transaction_index', '>=', paging.offset)
       .limit(paging.limit)
       .orderBy('transaction_index'),

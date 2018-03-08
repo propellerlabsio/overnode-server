@@ -151,7 +151,7 @@ const typeDefs = `
       transaction_id: String!
       transaction_index: Int!
       size: Int!
-      block_hash: String
+      block_height: Int
       time: Int!
       input_count: Int!
       output_count: Int!
@@ -162,7 +162,7 @@ const typeDefs = `
     type TransactionInput {
       transaction_id: String!
       input_number: Int!
-      block_hash: String
+      block_height: String
       coinbase: String
       output_transaction_id: String
       output_number: Int
