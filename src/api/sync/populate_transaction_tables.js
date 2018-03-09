@@ -33,7 +33,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
       transaction_id: rawTx.txid,
       transaction_index: transaction.index,
       size: rawTx.size,
-      block_hash: rawTx.blockhash,
+      block_height: block.height,
       time: rawTx.time,
       input_count: rawTx.vin.length,
       output_count: rawTx.vout.length,
