@@ -16,7 +16,7 @@ exports.up = function (knex) {
       }
       // Existing or new install?
       if (blocksJob.to_height > 0) {
-        // Create sync transaction job to start approx 2 days before
+        // Create sync transaction job to start approx 1 days before
         // blocks sync height
         let heightADayEarlier = blocksJob.to_height - (
           6 * // blocks per hour
