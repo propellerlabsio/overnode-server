@@ -77,12 +77,23 @@ const sync = {
     try {
       // Get sync job details
       const job = await sync.get({ name });
+
+      // Check if this block is outside of range already processed
       if (!reprocess) {
-        // Check this block is outside of range already processed
         if (block.height >= job.from_height && block.height <= job.to_height) {
           // Already processed this block and no reprocess requested so exit
           return;
         }
+      }
+
+      // Check if block is outside of minimum range allowed for this job
+      if (job.min_height !== null && block.height < job.min_height) {
+        return;
+      }
+
+      // Check if block is outside of maximum range allowed for this job
+      if (job.max_height !== null && block.height > job.max_height) {
+        return;
       }
 
       // Execute sync job
