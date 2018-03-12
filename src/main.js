@@ -170,11 +170,8 @@ async function main() {
   const [commonHeight] = peerHeights.sort((a, b) => b.count - a.count);
   liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
 
-  // Get the highest block we have fully synced to the database
-  const [{ from, to }] = await knex('sync')
-    .max('from_height as from')
-    .min('to_height as to')
-    .select();
+  // Get the lowest and highest block we have fully synced to the database
+  const [{ from }, { to }] = await sync.getCoverage();
   liveData.broadcast.height.overnode.from = from;
   liveData.broadcast.height.overnode.to = to;
 
