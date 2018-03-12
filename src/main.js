@@ -170,13 +170,10 @@ async function main() {
   const [commonHeight] = peerHeights.sort((a, b) => b.count - a.count);
   liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
 
-  // Get the highest block we have fully synced to the database
-  const [{ from, to }] = await knex('sync')
-    .max('from_height as from')
-    .min('to_height as to')
-    .select();
-  liveData.broadcast.height.overnode.from = from;
-  liveData.broadcast.height.overnode.to = to;
+  // Get the lowest and highest block we have fully synced to the database
+  const coverage = await sync.getCoverage();
+  liveData.broadcast.height.overnode.from = coverage.from;
+  liveData.broadcast.height.overnode.to = coverage.to;
 
   // If database is behind bitcoind, trigger sync jobs
   if (liveData.broadcast.height.bitcoind > liveData.broadcast.height.overnode.to) {

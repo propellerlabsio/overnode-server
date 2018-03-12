@@ -24,6 +24,19 @@ const sync = {
     return job;
   },
 
+
+  /**
+   * Return how much of the blockchain has been synced to the database
+   *
+   * @returns {Object}  Object containing from and to blockheight
+   */
+  getCoverage() {
+    return knex('sync')
+      .max('from_height as from')
+      .min('to_height as to')
+      .first();
+  },
+
   /**
    * Return all sync jobs
    */
