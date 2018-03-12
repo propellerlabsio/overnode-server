@@ -63,37 +63,6 @@ const sync = {
       .orderBy('height'),
 
   /**
-   * Backwards sync any jobs that have a from-height of greater than zero.
-   *
-   * Normal sync operations are forward however it is useful to deploy
-   * new sync jobs at a recent block height and allow users to continue
-   * to use the service while a second process (this one) backwards
-   * syncs back to block height 0.
-   */
-  backSync: async () => {
-    try {
-      // Get maximum 'from_height' that isn't zero
-      const { max } = await knex('sync')
-        .max('from_height')
-        .where('from_height', '>=', 0)
-        .first();
-
-      // Start syncing
-      if (max) {
-        console.log('Starting backwards syncing');
-        await sync.process({
-          fromHeight: max - 1,
-          toHeight: 0,
-          direction: sync.BACKWARD,
-        });
-        console.log('Backwards syncing complete');
-      }
-    } catch (err) {
-      console.error('Error back-syncing: ', middleTrim(err.message, 256));
-    }
-  },
-
-  /**
    * Execute a given sync job with a given block
    */
   execute: async ({ name, block, direction, reprocess = false }) => {
