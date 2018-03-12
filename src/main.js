@@ -171,9 +171,9 @@ async function main() {
   liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
 
   // Get the lowest and highest block we have fully synced to the database
-  const coverage = await sync.getCoverage();
-  liveData.broadcast.height.overnode.from = coverage.from;
-  liveData.broadcast.height.overnode.to = coverage.to;
+  const [{ from }, { to }] = await sync.getCoverage();
+  liveData.broadcast.height.overnode.from = from;
+  liveData.broadcast.height.overnode.to = to;
 
   // If database is behind bitcoind, trigger sync jobs
   if (liveData.broadcast.height.bitcoind > liveData.broadcast.height.overnode.to) {

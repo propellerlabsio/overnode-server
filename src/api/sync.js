@@ -28,13 +28,23 @@ const sync = {
   /**
    * Return how much of the blockchain has been synced to the database
    *
-   * @returns {Object}  Object containing from and to blockheight
+   * @returns {[height]}  Array containing from and to blockheight
    */
   getCoverage() {
-    return knex('sync')
+    const fromQuery = knex('sync')
       .max('from_height as from')
-      .min('to_height as to')
+      .where('min_height', null)
+      .orWhere('min_height', '<', knex.raw('sync.from_height'))
       .first();
+    const toQuery = knex('sync')
+      .min('to_height as to')
+      .where('max_height', null)
+      .orWhere('max_height', '>', knex.raw('sync.to_height'))
+      .first();
+    return Promise.all([
+      fromQuery,
+      toQuery,
+    ]);
   },
 
   /**
