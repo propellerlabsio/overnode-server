@@ -24,6 +24,29 @@ const sync = {
     return job;
   },
 
+
+  /**
+   * Return how much of the blockchain has been synced to the database
+   *
+   * @returns {[height]}  Array containing from and to blockheight
+   */
+  getCoverage() {
+    const fromQuery = knex('sync')
+      .max('from_height as from')
+      .where('min_height', null)
+      .orWhere('min_height', '<', knex.raw('sync.from_height'))
+      .first();
+    const toQuery = knex('sync')
+      .min('to_height as to')
+      .where('max_height', null)
+      .orWhere('max_height', '>', knex.raw('sync.to_height'))
+      .first();
+    return Promise.all([
+      fromQuery,
+      toQuery,
+    ]);
+  },
+
   /**
    * Return all sync jobs
    */
@@ -40,49 +63,29 @@ const sync = {
       .orderBy('height'),
 
   /**
-   * Backwards sync any jobs that have a from-height of greater than zero.
-   *
-   * Normal sync operations are forward however it is useful to deploy
-   * new sync jobs at a recent block height and allow users to continue
-   * to use the service while a second process (this one) backwards
-   * syncs back to block height 0.
-   */
-  backSync: async () => {
-    try {
-      // Get maximum 'from_height' that isn't zero
-      const { max } = await knex('sync')
-        .max('from_height')
-        .where('from_height', '>=', 0)
-        .first();
-
-      // Start syncing
-      if (max) {
-        console.log('Starting backwards syncing');
-        await sync.process({
-          fromHeight: max - 1,
-          toHeight: 0,
-          direction: sync.BACKWARD,
-        });
-        console.log('Backwards syncing complete');
-      }
-    } catch (err) {
-      console.error('Error back-syncing: ', middleTrim(err.message, 256));
-    }
-  },
-
-  /**
    * Execute a given sync job with a given block
    */
   execute: async ({ name, block, direction, reprocess = false }) => {
     try {
       // Get sync job details
       const job = await sync.get({ name });
+
+      // Check if this block is outside of range already processed
       if (!reprocess) {
-        // Check this block is outside of range already processed
         if (block.height >= job.from_height && block.height <= job.to_height) {
           // Already processed this block and no reprocess requested so exit
           return;
         }
+      }
+
+      // Check if block is outside of minimum range allowed for this job
+      if (job.min_height !== null && block.height < job.min_height) {
+        return;
+      }
+
+      // Check if block is outside of maximum range allowed for this job
+      if (job.max_height !== null && block.height > job.max_height) {
+        return;
       }
 
       // Execute sync job
