@@ -1,3 +1,7 @@
+/**
+ * Converts block hash to block height in transaction table
+ */
+
 /* Ignore camel case requirement for function names.  These names are visible */
 /* to non-programmers:                                                        */
 /* eslint-disable camelcase                                                   */
