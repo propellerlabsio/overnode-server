@@ -6,10 +6,22 @@
 import { knex } from '../knex';
 
 const addresses = {
-  get: ({ address }) =>
-    knex('output_address')
+  get: async ({ address }) => {
+    const outputWithMultiple = knex('output_address')
       .where('address', address)
-      .first(),
+      .first();
+
+    const outputWithSingle = knex('output')
+      .where('address', address)
+      .first();
+
+    const [a, b] = await Promise.all([
+      outputWithMultiple,
+      outputWithSingle,
+    ]);
+
+    return a || b;
+  },
   findByOutput: ({ transaction_id, output_number }) =>
     knex('output_address')
       .select('address')

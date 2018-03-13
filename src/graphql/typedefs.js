@@ -173,6 +173,7 @@ const typeDefs = `
       transaction_id: String!
       output_number: Int
       value: Float
+      address: String
       addresses: [String]
     }
 

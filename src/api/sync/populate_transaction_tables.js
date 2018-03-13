@@ -49,35 +49,36 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     }));
     const insertInputs = knex.insert(inputs).into('input_staging');
 
-    // Insert transaction outputs into database.  Note that unlike a regular insert,
-    // we are using a db transaction which means we can't get back the id field
-    // values of the inserted records
-    const outputs = rawTx.vout.map(output => ({
-      transaction_id: rawTx.txid,
-      output_number: output.n,
-      value: output.value,
-    }));
-    const insertOutputs = knex.insert(outputs).into('output');
+    // Build transaction outputs for inserting into database.
+    const addresses = []; // For multiple output addresses
+    const outputs = rawTx.vout.map((rawOutput) => {
+      const address_count = rawOutput.scriptPubKey.addresses ?
+        rawOutput.scriptPubKey.addresses.length :
+        null;
 
-    // Insert output addresses into database.  We need to repeat the
-    // transaction and output number in this table because we can't
-    // get the ids of the inserted records from the above
-    const addresses = outputs.reduce((accumulator, output, index) => {
-      const rawOutput = rawTx.vout[index];
-      const results = accumulator;
-      const rawAddresses = rawOutput.scriptPubKey.addresses;
-      if (rawAddresses) {
-        rawAddresses.forEach((rawAddress) => {
-          results.push({
-            transaction_id: output.transaction_id,
-            output_number: output.output_number,
-            address: rawAddress.substr(12), // ditch 'bitcoincash:' prefix
-          });
-        });
+
+      // Addresses for outputs with multiple addresses go in output_address table
+      if (address_count > 1) {
+        rawOutput.scriptPubKey.addresses.forEach(rawAddress => addresses.push({
+          transaction_id: rawTx.txid,
+          output_number: rawOutput.n,
+          address: rawAddress.substr(12), // ditch 'bitcoincash:' prefix
+        }));
       }
 
-      return accumulator;
-    }, []);
+      // Build output table record.  Store address here if single address (most of them)
+      return {
+        transaction_id: rawTx.txid,
+        output_number: rawOutput.n,
+        value: rawOutput.value,
+        address: address_count === 1 ?
+          rawOutput.scriptPubKey.addresses[0].substr(12) :
+          null,
+      };
+    });
+
+    // Create queries to insert outputs and output addresses
+    const insertOutputs = knex.insert(outputs).into('output');
     const insertAddresses = knex('output_address').insert(addresses);
 
     // Do inserts in parallel
