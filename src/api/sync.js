@@ -28,18 +28,27 @@ const sync = {
   /**
    * Return how much of the blockchain has been synced to the database
    *
+   * @param   {Boolean} critical  Return critical coverage or non-critical
    * @returns {[height]}  Array containing from and to blockheight
    */
-  getCoverage() {
+  getCoverage({ critical = true } = {}) {
     const fromQuery = knex('sync')
       .max('from_height as from')
-      .where('min_height', null)
-      .orWhere('min_height', '<', knex.raw('sync.from_height'))
+      .where(function whereMinHeight() {
+        return this
+          .where('min_height', null)
+          .orWhere('min_height', '<', knex.raw('sync.from_height'));
+      })
+      .andWhere('critical', critical)
       .first();
     const toQuery = knex('sync')
       .min('to_height as to')
-      .where('max_height', null)
-      .orWhere('max_height', '>', knex.raw('sync.to_height'))
+      .where(function whereMaxHeight() {
+        return this
+          .where('max_height', null)
+          .orWhere('max_height', '>', knex.raw('sync.to_height'));
+      })
+      .andWhere('critical', critical)
       .first();
     return Promise.all([
       fromQuery,
@@ -170,11 +179,10 @@ const sync = {
       .update(updateValues);
   },
 
-
   /**
    * Process sync jobs that haven't been run yet from fromHeight to toHeight
    */
-  process: async ({ fromHeight, toHeight, direction }) => {
+  process: async ({ fromHeight, toHeight, direction, critical = true }) => {
     // Validate params
     if (direction !== sync.FORWARD && direction !== sync.BACKWARD) {
       throw new Error('Invalid or no sync direction provided.');
@@ -187,17 +195,19 @@ const sync = {
         // Get block.
         const block = await rpc('getblock', height.toString());
 
-        // Populate block table
-        await sync.execute({ name: 'populate_block_table', block, direction });
+        if (critical) {
+          // Populate block table
+          await sync.execute({ name: 'populate_block_table', block, direction });
 
-        // Sync transaction to database
-        await sync.execute({ name: 'populate_transaction_tables', block, direction });
+          // Sync transaction to database
+          await sync.execute({ name: 'populate_transaction_tables', block, direction });
 
-        // Adjust data (1)
-        await sync.execute({ name: 'adjust_data_1', block, direction });
-
-        // Adjust data (2)
-        await sync.execute({ name: 'adjust_data_2', block, direction });
+          // Adjust data (1)
+          await sync.execute({ name: 'adjust_data_1', block, direction });
+        } else {
+          // Adjust data (2)
+          await sync.execute({ name: 'adjust_data_2', block, direction });
+        }
       } catch (err) {
         console.log(`Sync skipping block ${height} due to error: ${middleTrim(err.message, 256)}`);
       }
