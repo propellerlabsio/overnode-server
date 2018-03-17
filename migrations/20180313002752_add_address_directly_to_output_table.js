@@ -19,7 +19,7 @@ exports.up = function(knex, Promise) {
 };
 
 exports.down = function(knex, Promise) {
-  return knex.schema.table(tableName, (table) => {
-    table.dropColumn('address');
-  });
+  // Cannot automatically roll back this migration.  Automating this rollback in a live system
+  // might require creation of millions of records - too big for this rollback.
+  throw new Error('Rollback of this migration would involve possible data loss. Must be performed manually.');
 };
