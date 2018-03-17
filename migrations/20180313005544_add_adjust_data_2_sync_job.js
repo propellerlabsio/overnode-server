@@ -10,7 +10,6 @@ const syncName = 'adjust_data_2';
 exports.up = function (knex) {
   // Get height of existing populate transactions job
   return knex('sync')
-    .select('to_height')
     .where('name', 'populate_transaction_tables')
     .first()
     .then((transactionsJob) => {
