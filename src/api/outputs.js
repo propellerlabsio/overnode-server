@@ -13,13 +13,14 @@ const outputs = {
       .limit(paging.limit)
       .orderBy('output_number'),
   findByAddress: ({ address, paging }) =>
-    knex('output_address')
+    knex('output')
       .select('output.*')
-      .innerJoin('output', {
+      .leftJoin('output_address', {
         'output.transaction_id': 'output_address.transaction_id',
         'output.output_number': 'output_address.output_number',
       })
-      .where('output_address.address', address)
+      .where('output.address', address)
+      .orWhere('output_address.address', address)
       .orderBy('output.value', 'DESC')
       .offset(paging.offset)
       .limit(paging.limit),

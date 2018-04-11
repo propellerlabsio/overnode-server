@@ -17,11 +17,11 @@ const inputs = {
         'output.transaction_id': 'input_staging.output_transaction_id',
         'output.output_number': 'input_staging.output_number',
       }),
-  findByAddress: ({ address, paging }) =>
+  findByAddress: ({ address, paging }) => 
     knex
       .select('input_staging.*', 'output.value as output_value')
-      .from('output_address')
-      .join('output', {
+      .from('output')
+      .leftJoin('output_address', {
         'output.transaction_id': 'output_address.transaction_id',
         'output.output_number': 'output_address.output_number',
       })
@@ -29,7 +29,8 @@ const inputs = {
         'output.transaction_id': 'input_staging.output_transaction_id',
         'output.output_number': 'input_staging.output_number',
       })
-      .where('output_address.address', address)
+      .where('output.address', address)
+      .orWhere('output_address.address', address)
       .offset(paging.offset)
       .orderBy('output.value', 'DESC')
       .limit(paging.limit)
