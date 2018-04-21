@@ -193,11 +193,6 @@ const sync = {
         // Sync transaction to database
         await sync.execute({ name: 'populate_transaction_tables', block, direction });
 
-        // Adjust data (1)
-        await sync.execute({ name: 'adjust_data_1', block, direction });
-
-        // Adjust data (2)
-        await sync.execute({ name: 'adjust_data_2', block, direction });
       } catch (err) {
         console.log(`Sync skipping block ${height} due to error: ${middleTrim(err.message, 256)}`);
       }
