@@ -4,7 +4,7 @@ exports.up = function (knex) {
     table.comment('An output in a bitcoin transaction')
     table.string('transaction_id', 64);
     table.integer('output_number').comment('Output number indexed from 0');
-    table.float('value', 16, 8);
+    table.decimal('value', 16, 8);
     table.string('address', 42)
       .comment('Output address if output has single address.  Refer output_address if blank for multiple addresses');
 
