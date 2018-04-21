@@ -163,4 +163,20 @@ export default async function populate_transaction_tables(block) {
     .catch((err) => {
       throw err;
     });
+
+  // Move inputs from input staging to fields in output table
+  // await knex()
+  await knex.raw(`
+    UPDATE output
+    SET input_transaction_id = input_staging.transaction_id,
+      input_number = input_staging.input_number
+    FROM input_staging
+    WHERE input_staging.block_height = ${block.height}
+      AND output.transaction_id = input_staging.output_transaction_id
+      AND output.output_number = input_staging.output_number;    
+  `).then(async () => {
+    await knex('input_staging')
+      .where('block_height', block.height)
+      .delete();
+  });
 }
