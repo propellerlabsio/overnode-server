@@ -46,6 +46,8 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
       coinbase: input.coinbase,
       output_transaction_id: input.txid,
       output_number: input.vout,
+      block_height: block.height,
+      transaction_number: transaction.index,
     }));
     const insertInputs = knex.insert(inputs).into('input_staging');
 
@@ -136,4 +138,29 @@ export default async function populate_transaction_tables(block) {
 
   // Resolve all promises
   await Promise.all(promises);
+
+  // Now all inputs for this block are in input_staging and we can remove them /
+  // convert them to spent outputs.  Can't do earlier due to parallelized processing
+  // (outputs spent might be in another thread).  Start with moving coinbase to
+  // block header
+  await knex('input_staging')
+    .where('block_height', block.height)
+    .andWhere('transaction_number', 0)
+    .andWhere('input_number', 0)
+    .first()
+    .then(async (input) => {
+      await knex('block')
+        .where('height', block.height)
+        .update('coinbase', input.coinbase);
+    })
+    .then(async () => {
+      await knex('input_staging')
+        .where('block_height', block.height)
+        .andWhere('transaction_number', 0)
+        .andWhere('input_number', 0)
+        .delete();
+    })
+    .catch((err) => {
+      throw err;
+    });
 }

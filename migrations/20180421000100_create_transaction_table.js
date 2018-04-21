@@ -2,6 +2,8 @@ const tableName = 'transaction';
 exports.up = function (knex) {
   return knex.schema.createTable(tableName, function (table) {
     table.comment('A bitcoin transaction')
+
+    // Fields
     table.string('transaction_id', 64).primary();
     table.integer('transaction_number').comment('Transaction number in block indexed from 0');
     table.integer('size');
@@ -10,7 +12,7 @@ exports.up = function (knex) {
     table.integer('output_count');
     table.integer('block_height');
 
-    // NEW Foreign keys and indexes
+    // Indexes
     table.index('block_height');
   });
 };
