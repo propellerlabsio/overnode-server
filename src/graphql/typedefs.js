@@ -149,7 +149,7 @@ const typeDefs = `
     # A single bitcoin transaction.
     type Transaction {
       transaction_id: String!
-      transaction_index: Int!
+      transaction_number: Int!
       size: Int!
       block_height: Int
       time: Int!

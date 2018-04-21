@@ -2,7 +2,6 @@ const tableName = 'input_staging';
 exports.up = function (knex) {
   return knex.schema.createTable(tableName, function (table) {
     // Fields
-    table.increments();
     table.comment('An input to a bitcoin transaction')
     table.string('transaction_id', 64);
     table.integer('input_number').comment('Input number indexed from 0');
@@ -11,8 +10,8 @@ exports.up = function (knex) {
     table.integer('output_number').comment('Output number indexed from 0');
 
     // Indexes
-    table.primary(['transaction_id', 'input_number']),
-    table.index(['output_transaction_id', 'output_number']),
+    table.primary(['transaction_id', 'input_number']);
+    table.index(['output_transaction_id', 'output_number']);
   });
 };
 

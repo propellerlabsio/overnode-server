@@ -3,7 +3,7 @@ exports.up = function (knex) {
   return knex.schema.createTable(tableName, function (table) {
     table.comment('A bitcoin transaction')
     table.string('transaction_id', 64).primary();
-    table.integer('transaction_index').comment('Transaction number in block indexed from 0');
+    table.integer('transaction_number').comment('Transaction number in block indexed from 0');
     table.integer('size');
     table.string('block_hash', 64);
     table.integer('time');  // Y2038 bug

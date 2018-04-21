@@ -1,5 +1,4 @@
-const tableName = 'job';
-const functionName = 'populate_block_table';
+const tableName = 'sync';
 
 exports.up = function (knex) {
   return knex(tableName).insert([{

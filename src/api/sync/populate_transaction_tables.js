@@ -31,7 +31,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     // console.debug(`Virtual thread ${virtualThreadNo} Inserting transaction ${txid}`);
     const insertTransactions = knex('transaction').insert({
       transaction_id: rawTx.txid,
-      transaction_index: transaction.index,
+      transaction_number: transaction.index,
       size: rawTx.size,
       block_height: block.height,
       time: rawTx.time,
