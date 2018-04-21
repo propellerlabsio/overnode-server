@@ -3,12 +3,12 @@ const tableName = 'sync';
 exports.up = function (knex) {
   return knex(tableName).insert([{
     name: 'populate_block_table',
-    from_height: -1,
-    to_height: null,
+    from_height: 0,
+    to_height: -1,
   }, {
     name: 'populate_transaction_tables',
-    from_height: -1,
-    to_height: null,
+    from_height: 0,
+    to_height: -1,
   }]);
 };
 
