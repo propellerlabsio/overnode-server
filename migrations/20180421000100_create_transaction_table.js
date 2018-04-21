@@ -9,10 +9,11 @@ exports.up = function (knex) {
     table.integer('time');  // Y2038 bug
     table.integer('input_count');
     table.integer('output_count');
+    table.integer('block_height');
 
-    // Foreign keys and indexes
-    table.foreign('block_hash').references('block.hash');
-    table.index('block_hash');
+    // NEW Foreign keys and indexes
+    table.index('block_height');
+    table.index(['block_hash'], null, 'HASH');
   });
 };
 
