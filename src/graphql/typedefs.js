@@ -36,6 +36,7 @@ const typeDefs = `
       code: String!
       label: String!
       bch_rate: Float!
+      decimal_places: Int!
       rate_updated: Float!
     }
 
