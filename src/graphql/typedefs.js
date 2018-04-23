@@ -7,8 +7,14 @@
 const typeDefs = `
     type Address {
       address: String!
+      totals: AddressTotals!
       received(paging: Paging): [TransactionOutput]
       spent(paging: Paging): [TransactionInput]
+    }
+
+    type AddressTotals {
+      spent: Float!
+      received: Float!
     }
 
     type Block {

@@ -44,6 +44,7 @@ const resolvers = {
       address,
       paging: args.paging,
     }),
+    totals: ({ address }) => addresses.getTotals({ address }),
   },
   Block: {
     transactions: (block, args) => pagedQuery(transactions.findByBlock, {

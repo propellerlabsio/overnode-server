@@ -22,6 +22,30 @@ const addresses = {
 
     return a || b;
   },
+  getTotals: async ({ address }) => {
+    const totalReceivedQuery =
+      knex('output')
+        .sum('value as received')
+        .from('output')
+        .where('address', address)
+        .first();
+    const totalSpentQuery =
+      knex('output')
+        .sum('value as spent')
+        .from('output')
+        .whereNotNull('input_transaction_id')
+        .andWhere('address', address)
+        .first();
+    const [{ received }, { spent }] = await Promise.all([
+      totalReceivedQuery,
+      totalSpentQuery,
+    ]);
+
+    return {
+      received: received || 0,
+      spent: spent || 0,
+    };
+  },
   findByOutput: ({ transaction_id, output_number }) =>
     knex('output_address')
       .select('address')
