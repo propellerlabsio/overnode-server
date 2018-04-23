@@ -4,6 +4,7 @@ import axios from 'axios';
 import { request as rpc } from './rpc';
 import { knex } from './knex';
 import sync from './api/sync';
+import prices from './api/prices';
 import { clientCount } from './socket';
 
 let mempoolReadings = [];
@@ -47,6 +48,17 @@ export const liveData = {
     peers: [],
   },
 };
+
+async function updatePrices() {
+  try {
+    await prices.update();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    // Update prices again in 5 minutes
+    setTimeout(updatePrices, 1000 * 60 * 5);
+  }
+}
 
 /**
  * Check we have peer geolocation and fetch if not
@@ -258,4 +270,7 @@ export function start() {
 
   // Check peer locations periodically
   checkPeerLocations();
+
+  // Update prices periodically
+  updatePrices();
 }

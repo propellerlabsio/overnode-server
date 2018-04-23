@@ -32,6 +32,13 @@ const typeDefs = `
       speed: Int!
     }
 
+    type Currency {
+      code: String!
+      label: String!
+      bch_rate: Float!
+      rate_updated: Float!
+    }
+
     type Host {
       hostname: String!
       platform: String!
@@ -116,6 +123,8 @@ const typeDefs = `
         block(hash: String, height: Int): Block!
 
         blocks(paging: Paging): [Block]
+
+        currencies(paging: Paging): [Currency]
 
         host: Host!
 

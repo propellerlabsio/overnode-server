@@ -1,5 +1,6 @@
 import addresses from '../api/addresses';
 import blocks from '../api/blocks';
+import currencies from '../api/currencies';
 import host from '../api/host';
 import inputs from '../api/inputs';
 import sync from '../api/sync';
@@ -63,6 +64,7 @@ const resolvers = {
     address: (root, args) => addresses.get(args),
     block: (root, args) => blocks.get(args),
     blocks: (root, args) => pagedQuery(blocks.find, args),
+    currencies: (root, args) => currencies.find(args),
     host: (root, args) => host.get(args),
     node: (root, args) => node.get(args),
     peer: (root, args) => peers.get(args),
