@@ -4,7 +4,7 @@
 /* eslint-disable camelcase                                                   */
 
 import axios from 'axios';
-import { knex } from '../knex';
+import { knex } from '../io/knex';
 
 const currencies = {
   find: () =>

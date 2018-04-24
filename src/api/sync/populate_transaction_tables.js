@@ -3,8 +3,8 @@
 /* to non-programmers:                                                        */
 /* eslint-disable camelcase                                                   */
 
-import { request as rpc } from '../../rpc';
-import { knex } from '../../knex';
+import { request as rpc } from '../../io/rpc';
+import { knex } from '../../io/knex';
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
 // by default is configured to allow 16 concurrent calls from all processes

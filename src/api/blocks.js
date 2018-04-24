@@ -1,4 +1,4 @@
-import { knex } from '../knex';
+import { knex } from '../io/knex';
 import { liveData } from '../main';
 
 const blocks = {

@@ -3,7 +3,7 @@
 /* postgresql where camelcase names are not supported.                        */
 /* eslint-disable camelcase                                                   */
 
-import { knex } from '../knex';
+import { knex } from '../io/knex';
 
 const outputs = {
   find: ({ transaction_id, paging }) =>

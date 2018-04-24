@@ -5,9 +5,9 @@
 /* Allow console messages from this file only (important log info)             */
 /* eslint-disable no-console                                                   */
 
-import { knex } from '../knex';
+import { knex } from '../io/knex';
 import functions from './sync/functions';
-import { request as rpc } from '../rpc';
+import { request as rpc } from '../io/rpc';
 import { middleTrim } from '../util/strings';
 
 const sync = {
