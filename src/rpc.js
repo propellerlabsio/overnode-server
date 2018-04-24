@@ -3,8 +3,8 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 
-const bitcoinRpcHost = '127.0.0.1'; // TODO move to env var
-const bitcoinRpcPort = 8332; // TODO move to env var
+const bitcoinRpcHost = process.env.BITCOIN_RPC_HOST || '127.0.0.1';
+const bitcoinRpcPort = process.env.BITCOIN_RPC_PORT || 8332;
 
 let auth;
 
@@ -86,7 +86,7 @@ export async function initialize() {
     await request('getinfo');
   } catch (err) {
     if (err.message.includes('ECONNREFUSED')) {
-      throw new Error('Unable to connect to bitcoind (possibly not running): ECONNREFUSED');
+      throw new Error(`Unable to connect to bitcoind at ${bitcoinRpcHost}:${bitcoinRpcPort} (possibly not running): ECONNREFUSED`);
     } else if (err.message.includes('401')) {
       throw new Error('Unable to connect to bitcoind (possibly incorrect RPC credentials): server returned 401.');
     } else {

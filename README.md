@@ -80,6 +80,12 @@ The `user:password` for connecting to the bitcoin node via JSON-RPC.  If this en
 
 If no BITCOIN_RPC_AUTH is provided, this folder is read for a file called `.cookie` which is recreated on restart of the `bitcoind` daemon and contains the RPC credentials that can be used to log in.
 
+### BITCOIN_RPC_HOST
+If not nominated, defaults to localhost '127.0.0.1'.
+
+### BITCOIN_RPC_PORT
+If not nominated, defaults to 8332. Note that for testnet, the Bitcoin Unlimited Cash node software will default the RPC port to 18332.  If there are any doubts, configure the bitcoin node to start with a specific port using the `-rpcport=<port>` argument.
+
 ### PG_CONNECTION_STRING
 
 A postgresql `conninfo` string to connect to the database in the format:
