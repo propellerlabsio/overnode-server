@@ -78,7 +78,7 @@ The `user:password` for connecting to the bitcoin node via JSON-RPC.  If this en
 
 ### BITCOIN_COOKIE_DIRECTORY
 
-If no BITCOIN_RPC_AUTH is provided, this folder is read for a file called `.cookie` which is recreated on restart of the `bitcoind` daemon and contains the RPC credentials that can be used to log in.
+If no BITCOIN_RPC_AUTH is provided, this folder is read for a file called `.cookie` which is recreated on restart of the `bitcoind` daemon and contains the RPC credentials that can be used to log in.  **NOTE:** When connecting your node to `testnet` using BU Cash, the `.cookie` file will be placed in a subdirectory of your datadirectory - e.g. `/testnet3`.  The full path to the cookie must be included in this variable value.
 
 ### BITCOIN_RPC_HOST
 If not nominated, defaults to localhost '127.0.0.1'.
