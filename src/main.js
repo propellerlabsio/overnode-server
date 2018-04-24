@@ -1,11 +1,11 @@
 /* Allow console messages from this file only */
 /* eslint-disable no-console                  */
 import axios from 'axios';
-import { request as rpc } from './rpc';
-import { knex } from './knex';
+import { request as rpc } from './io/rpc';
+import { knex } from './io/knex';
 import sync from './api/sync';
-import prices from './api/prices';
-import { clientCount } from './socket';
+import prices from './api/currencies';
+import { clientCount } from './io/socket';
 
 let mempoolReadings = [];
 let lastRpcPeers = [];

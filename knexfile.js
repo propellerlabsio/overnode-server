@@ -3,9 +3,9 @@
  * for that purpose.  Our migrations performed automatically in index.js
  * so this file is not used except when creating new migrations or rolling back
  * migrations via the command line, e.g. the following commands:
- * 
+ *
  *   `knex migrate:make <name>`
- *   `knex migrate:rollback` 
+ *   `knex migrate:rollback`
  *   etc
  */
 // Load local environment variables first
@@ -23,7 +23,7 @@ module.exports = {
       max: 10,
     },
     migrations: {
-      tableName: 'knex_migrations'
+      tableName: 'knex_migrations',
     },
   },
 
@@ -36,7 +36,7 @@ module.exports = {
       max: 10,
     },
     migrations: {
-      tableName: 'knex_migrations'
+      tableName: 'knex_migrations',
     },
   },
 

@@ -1,7 +1,7 @@
 /* Allow console messages in this file: */
 /*   eslint-disable no-console          */
 import WebSocket from 'ws';
-import { liveData } from './main';
+import { liveData } from '../main';
 
 const CONNECTION_OPEN = 1;
 let wss; // Websocket servr
