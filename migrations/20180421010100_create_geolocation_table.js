@@ -1,10 +1,16 @@
-const tableName = 'peer';
+/**
+ * Create geolocation table keyed by ip address and then move geolocation data out of the
+ * peer table into the new table.
+ */
+
+const tableName = 'geolocation';
 
 exports.up = function (knex) {
+  // Create geolocation table
   return knex
     .schema
     .createTable(tableName, function (table) {
-      table.string('address', 64).primary().comment('IP address of peer');
+      table.string('ip_address', 64).primary().comment('IP address');
       table.date('location_fetched').comment('Date/time of when geo location was last updated')
       table.string('country');
       table.string('country_code', 3);
@@ -23,5 +29,6 @@ exports.up = function (knex) {
 };
 
 exports.down = function (knex) {
+  // Drop new geolocation table
   return knex.schema.dropTable(tableName);
 };

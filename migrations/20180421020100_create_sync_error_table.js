@@ -12,20 +12,9 @@ exports.up = function (knex) {
       table.integer('height').primary().comment('Height of block error occurred in');
       table.string('name', 64).comment('Name of sync job error occurred in');
       table.string('message').comment('Error message');
-    }).then(() => {
-      return knex.schema.table('sync', (table) => {
-        table.dropColumn('error_height');
-        table.dropColumn('error_message');
-      });
     });
 };
 
 exports.down = function (knex) {
-  return knex.schema.dropTable(tableName)
-    .then(() => {
-      return knex.schema.table('sync', (table) => {
-        table.integer('error_height').comment('If not null, then block at which job errored and stopped processing.');
-        table.string('error_message').comment('Message of error occuring at error_height');
-      });
-    });
+  return knex.schema.dropTable(tableName);
 };

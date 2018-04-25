@@ -7,8 +7,7 @@ exports.up = function (knex) {
     table.integer('time');  // Y2038 bug
     table.integer('tx_count');
     table.integer('interval').comment('Interval in seconds since last block');
-    table.string('previousblockhash', 64);
-    table.string('nextblockhash', 64);
+    table.string('coinbase', 200);
     table.index('height');
   });
 };

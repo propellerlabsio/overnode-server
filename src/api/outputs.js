@@ -3,7 +3,7 @@
 /* postgresql where camelcase names are not supported.                        */
 /* eslint-disable camelcase                                                   */
 
-import { knex } from '../knex';
+import { knex } from '../io/knex';
 
 const outputs = {
   find: ({ transaction_id, paging }) =>
@@ -13,14 +13,9 @@ const outputs = {
       .limit(paging.limit)
       .orderBy('output_number'),
   findByAddress: ({ address, paging }) =>
-    knex('output_address')
-      .select('output.*')
-      .innerJoin('output', {
-        'output.transaction_id': 'output_address.transaction_id',
-        'output.output_number': 'output_address.output_number',
-      })
-      .where('output_address.address', address)
-      .orderBy('output.value', 'DESC')
+    knex('output')
+      .where('address', address)
+      .orderBy('value', 'DESC')
       .offset(paging.offset)
       .limit(paging.limit),
 };

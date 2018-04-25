@@ -7,8 +7,14 @@
 const typeDefs = `
     type Address {
       address: String!
+      totals: AddressTotals!
       received(paging: Paging): [TransactionOutput]
       spent(paging: Paging): [TransactionInput]
+    }
+
+    type AddressTotals {
+      spent: Float!
+      received: Float!
     }
 
     type Block {
@@ -24,6 +30,14 @@ const typeDefs = `
     type CPU {
       model: String!
       speed: Int!
+    }
+
+    type Currency {
+      code: String!
+      label: String!
+      bch_rate: Float!
+      decimal_places: Int!
+      rate_updated: Float!
     }
 
     type Host {
@@ -111,6 +125,8 @@ const typeDefs = `
 
         blocks(paging: Paging): [Block]
 
+        currencies(paging: Paging): [Currency]
+
         host: Host!
 
         node: Node!
@@ -149,7 +165,7 @@ const typeDefs = `
     # A single bitcoin transaction.
     type Transaction {
       transaction_id: String!
-      transaction_index: Int!
+      transaction_number: Int!
       size: Int!
       block_height: Int
       time: Int!
@@ -162,7 +178,6 @@ const typeDefs = `
     type TransactionInput {
       transaction_id: String!
       input_number: Int!
-      block_height: String
       coinbase: String
       output_transaction_id: String
       output_number: Int

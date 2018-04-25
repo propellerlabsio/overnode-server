@@ -3,7 +3,7 @@
 /* postgresql where camelcase names are not supported.                        */
 /* eslint-disable camelcase                                                   */
 
-import { knex } from '../knex';
+import { knex } from '../io/knex';
 
 const transactions = {
   get: ({ transaction_id }) =>
@@ -13,9 +13,9 @@ const transactions = {
   findByBlock: ({ block, paging }) =>
     knex('transaction')
       .where('block_height', block.height)
-      .andWhere('transaction_index', '>=', paging.offset)
+      .andWhere('transaction_number', '>=', paging.offset)
       .limit(paging.limit)
-      .orderBy('transaction_index'),
+      .orderBy('transaction_number'),
 };
 
 export default transactions;

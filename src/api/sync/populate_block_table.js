@@ -3,7 +3,7 @@
 /* eslint-disable camelcase                                                   */
 
 import blocks from '../blocks';
-import { knex } from '../../knex';
+import { knex } from '../../io/knex';
 
 /**
  * Populates the database table 'block' with details of the provided block

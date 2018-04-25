@@ -3,7 +3,7 @@ const tableName = 'user';
 exports.up = function (knex) {
   return knex.schema.createTable(tableName, function (table) {
     table.increments();
-    table.string('name').unique();
+    table.string('email').unique();
     table.string('password', 1024);
     table.string('salt').comment('Salt value used in password hashing');
     table.integer('iterations').comment('Number of iterations used in password hashing');

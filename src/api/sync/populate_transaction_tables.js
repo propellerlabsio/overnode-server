@@ -3,8 +3,8 @@
 /* to non-programmers:                                                        */
 /* eslint-disable camelcase                                                   */
 
-import { request as rpc } from '../../rpc';
-import { knex } from '../../knex';
+import { request as rpc } from '../../io/rpc';
+import { knex } from '../../io/knex';
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
 // by default is configured to allow 16 concurrent calls from all processes
@@ -31,7 +31,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     // console.debug(`Virtual thread ${virtualThreadNo} Inserting transaction ${txid}`);
     const insertTransactions = knex('transaction').insert({
       transaction_id: rawTx.txid,
-      transaction_index: transaction.index,
+      transaction_number: transaction.index,
       size: rawTx.size,
       block_height: block.height,
       time: rawTx.time,
@@ -46,6 +46,8 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
       coinbase: input.coinbase,
       output_transaction_id: input.txid,
       output_number: input.vout,
+      block_height: block.height,
+      transaction_number: transaction.index,
     }));
     const insertInputs = knex.insert(inputs).into('input_staging');
 
@@ -136,4 +138,45 @@ export default async function populate_transaction_tables(block) {
 
   // Resolve all promises
   await Promise.all(promises);
+
+  // Now all inputs for this block are in input_staging and we can remove them /
+  // convert them to spent outputs.  Can't do earlier due to parallelized processing
+  // (outputs spent might be in another thread).  Start with moving coinbase to
+  // block header
+  await knex('input_staging')
+    .where('block_height', block.height)
+    .andWhere('transaction_number', 0)
+    .andWhere('input_number', 0)
+    .first()
+    .then(async (input) => {
+      await knex('block')
+        .where('height', block.height)
+        .update('coinbase', input.coinbase);
+    })
+    .then(async () => {
+      await knex('input_staging')
+        .where('block_height', block.height)
+        .andWhere('transaction_number', 0)
+        .andWhere('input_number', 0)
+        .delete();
+    })
+    .catch((err) => {
+      throw err;
+    });
+
+  // Move inputs from input staging to fields in output table
+  // await knex()
+  await knex.raw(`
+    UPDATE output
+    SET input_transaction_id = input_staging.transaction_id,
+      input_number = input_staging.input_number
+    FROM input_staging
+    WHERE input_staging.block_height = ${block.height}
+      AND output.transaction_id = input_staging.output_transaction_id
+      AND output.output_number = input_staging.output_number;    
+  `).then(async () => {
+    await knex('input_staging')
+      .where('block_height', block.height)
+      .delete();
+  });
 }

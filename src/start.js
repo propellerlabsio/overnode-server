@@ -6,11 +6,11 @@ import cors from 'cors';
 import { makeExecutableSchema } from 'graphql-tools';
 
 // Local imports
-import { knex } from './knex';
+import { knex } from './io/knex';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
-import socket from './socket';
-import * as rpc from './rpc';
+import socket from './io/socket';
+import * as rpc from './io/rpc';
 import { start as startMain } from './main';
 
 console.log(`Node running in ${process.env.NODE_ENV} mode`);

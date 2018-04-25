@@ -3,35 +3,36 @@
 /* postgresql where camelcase names are not supported.                        */
 /* eslint-disable camelcase                                                   */
 
-import { knex } from '../knex';
+import { knex } from '../io/knex';
 
 const inputs = {
   find: ({ transaction_id, paging }) =>
-    knex('input_staging')
-      .select('input_staging.*', 'output.value as output_value')
-      .where('input_staging.transaction_id', transaction_id)
-      .andWhere('input_staging.input_number', '>=', paging.offset)
+    knex('output')
+      .column([
+        { transaction_id: 'input_transaction_id' },
+        'input_number',
+        { output_transaction_id: 'transaction_id' },
+        'output_number',
+        { output_value: 'value' },
+      ])
+      .where('input_transaction_id', transaction_id)
+      .andWhere('input_number', '>=', paging.offset)
       .limit(paging.limit)
-      .orderBy('input_number')
-      .leftJoin('output', {
-        'output.transaction_id': 'input_staging.output_transaction_id',
-        'output.output_number': 'input_staging.output_number',
-      }),
+      .orderBy('input_number'),
   findByAddress: ({ address, paging }) =>
     knex
-      .select('input_staging.*', 'output.value as output_value')
-      .from('output_address')
-      .join('output', {
-        'output.transaction_id': 'output_address.transaction_id',
-        'output.output_number': 'output_address.output_number',
-      })
-      .join('input_staging', {
-        'output.transaction_id': 'input_staging.output_transaction_id',
-        'output.output_number': 'input_staging.output_number',
-      })
-      .where('output_address.address', address)
+      .column([
+        { transaction_id: 'input_transaction_id' },
+        'input_number',
+        { output_transaction_id: 'transaction_id' },
+        'output_number',
+        { output_value: 'value' },
+      ])
+      .from('output')
+      .whereNotNull('input_transaction_id')
+      .andWhere('address', address)
       .offset(paging.offset)
-      .orderBy('output.value', 'DESC')
+      .orderBy('value', 'DESC')
       .limit(paging.limit)
       .offset(paging.offset),
 };

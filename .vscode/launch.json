@@ -8,20 +8,20 @@
       "type": "node",
       "request": "launch",
       "name": "Backsync",
-      "program": "${workspaceFolder}\\backSync.js"
+      "program": "${workspaceFolder}/backSync.js"
     },
     {
       "type": "node",
       "request": "launch",
       "preLaunchTask": "build",
       "name": "Build and run",
-      "program": "${workspaceFolder}\\index.js"
+      "program": "${workspaceFolder}/index.js"
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Re-run",
-      "program": "${workspaceFolder}\\index.js"
+      "program": "${workspaceFolder}/index.js"
     }
   ]
 }
