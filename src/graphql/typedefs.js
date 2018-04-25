@@ -131,6 +131,10 @@ const typeDefs = `
 
         node: Node!
 
+        # Admin function: raw access to bitcoind via JSON-RPC.  Refer to BUCash node
+        # documentation for valid commands and arguments.
+        rpc(command: String, parameters: [String]): String
+
         sync: [SyncJob]
 
         sync_error(paging: Paging): [SyncError]
