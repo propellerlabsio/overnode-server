@@ -79,8 +79,8 @@ const resolvers = {
     node: (root, args) => node.get(args),
     peer: (root, args) => peers.get(args),
     peers: (root, args) => peers.find(args),
-    rpc: (root, { command, parameters }, httpRequ) =>
-      rpc.request({ command, parameters, token: getToken(httpRequ) }),
+    rpc_getrawtransaction: (root, { txid, verbose }, httpRequ) =>
+      rpc.getrawtransaction({ txid, verbose, token: getToken(httpRequ) }),
     search: (root, args) => search.simple(args),
     sync: (root, args) => sync.find(args),
     sync_error: (root, args) => pagedQuery(sync.findError, args),
