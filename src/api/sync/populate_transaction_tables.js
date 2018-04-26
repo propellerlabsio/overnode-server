@@ -58,14 +58,19 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
         rawOutput.scriptPubKey.addresses.length :
         null;
 
+      // Determine how many characters in address prefix ('bitcoincash:' or 'bchtest:')
+      const firstAddress = rawOutput.scriptPubKey.addresses[0];
+      const addressPrefixLength = firstAddress ? firstAddress.indexOf(':') + 1 : 0;
 
       // Addresses for outputs with multiple addresses go in output_address table
       if (address_count > 1) {
-        rawOutput.scriptPubKey.addresses.forEach(rawAddress => addresses.push({
-          transaction_id: rawTx.txid,
-          output_number: rawOutput.n,
-          address: rawAddress.substr(12), // ditch 'bitcoincash:' prefix
-        }));
+        rawOutput.scriptPubKey.addresses.forEach((rawAddress) => {
+          addresses.push({
+            transaction_id: rawTx.txid,
+            output_number: rawOutput.n,
+            address: rawAddress.substr(addressPrefixLength), // ditch 'bitcoincash:' prefix
+          });
+        });
       }
 
       // Build output table record.  Store address here if single address (most of them)
@@ -74,7 +79,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
         output_number: rawOutput.n,
         value: rawOutput.value,
         address: address_count === 1 ?
-          rawOutput.scriptPubKey.addresses[0].substr(12) :
+          rawOutput.scriptPubKey.addresses[0].substr(addressPrefixLength) :
           null,
       };
     });
