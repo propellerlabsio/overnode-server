@@ -4,7 +4,6 @@
 /* eslint-disable camelcase                                                   */
 
 import { request as rpc } from '../../io/rpc';
-import { knex } from '../../io/knex';
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
 // by default is configured to allow 16 concurrent calls from all processes
@@ -15,10 +14,11 @@ const MAX_CONCURRENT_TRANSACTIONS = 6;
 /**
  * Pop the next txid off the stack and sync it.  Then call this procedure again.
  *
+ * @param {*} knexTrx         Knex transaction ("promise aware" knex connection)
  * @param {*} stack           Stack of transaction ids
  * @param {*} block           Block details
  */
-async function syncTransactionFromStack(virtualThreadNo, stack, block) {
+async function syncTransactionFromStack(knexTrx, virtualThreadNo, stack, block) {
   let promise;
 
   const transaction = stack.pop();
@@ -29,7 +29,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
 
     // Insert transaction into database
     // console.debug(`Virtual thread ${virtualThreadNo} Inserting transaction ${txid}`);
-    const insertTransactions = knex('transaction').insert({
+    const insertTransactions = knexTrx('transaction').insert({
       transaction_id: rawTx.txid,
       transaction_number: transaction.index,
       size: rawTx.size,
@@ -49,7 +49,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
       block_height: block.height,
       transaction_number: transaction.index,
     }));
-    const insertInputs = knex.insert(inputs).into('input_staging');
+    const insertInputs = knexTrx.insert(inputs).into('input_staging');
 
     // Build transaction outputs for inserting into database.
     const addresses = []; // For multiple output addresses
@@ -85,8 +85,8 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     });
 
     // Create queries to insert outputs and output addresses
-    const insertOutputs = knex.insert(outputs).into('output');
-    const insertAddresses = knex('output_address').insert(addresses);
+    const insertOutputs = knexTrx.insert(outputs).into('output');
+    const insertAddresses = knexTrx('output_address').insert(addresses);
 
     // Do inserts in parallel
     await Promise.all([
@@ -97,7 +97,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     ]);
 
     // Use recursion to keep processing until stack is exhuasted
-    promise = syncTransactionFromStack(virtualThreadNo, stack, block);
+    promise = syncTransactionFromStack(knexTrx, virtualThreadNo, stack, block);
   }
 
   return promise;
@@ -107,9 +107,10 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
  * Populates the database tables 'transaction', 'output' and 'output_address'
  * with details of transactions in the provided block
  *
+ * @param {*} knexTrx         Knex transaction ("promise aware" knex connection)
  * @param {*} block           Full block details provided by bitcoind
  */
-export default async function populate_transaction_tables(block) {
+export default async function populate_transaction_tables(knexTrx, block) {
   // Can't get transactions for the genesis block
   if (block.height === 0) {
     return;
@@ -135,6 +136,7 @@ export default async function populate_transaction_tables(block) {
     const stackToIndex = stackFromIndex + transactionsPerVirtualThread;
     const stackPortion = stack.slice(stackFromIndex, stackToIndex);
     promises.push(syncTransactionFromStack(
+      knexTrx,
       virtualThreadNumber,
       stackPortion,
       block,
@@ -148,18 +150,18 @@ export default async function populate_transaction_tables(block) {
   // convert them to spent outputs.  Can't do earlier due to parallelized processing
   // (outputs spent might be in another thread).  Start with moving coinbase to
   // block header
-  await knex('input_staging')
+  await knexTrx('input_staging')
     .where('block_height', block.height)
     .andWhere('transaction_number', 0)
     .andWhere('input_number', 0)
     .first()
     .then(async (input) => {
-      await knex('block')
+      await knexTrx('block')
         .where('height', block.height)
         .update('coinbase', input.coinbase);
     })
     .then(async () => {
-      await knex('input_staging')
+      await knexTrx('input_staging')
         .where('block_height', block.height)
         .andWhere('transaction_number', 0)
         .andWhere('input_number', 0)
@@ -170,18 +172,20 @@ export default async function populate_transaction_tables(block) {
     });
 
   // Move inputs from input staging to fields in output table
-  // await knex()
-  await knex.raw(`
+  await knexTrx.raw(`
     UPDATE output
     SET input_transaction_id = input_staging.transaction_id,
       input_number = input_staging.input_number
     FROM input_staging
-    WHERE input_staging.block_height = ${block.height}
-      AND output.transaction_id = input_staging.output_transaction_id
-      AND output.output_number = input_staging.output_number;    
+    WHERE output.transaction_id = input_staging.output_transaction_id
+      AND output.output_number = input_staging.output_number;   
   `).then(async () => {
-    await knex('input_staging')
-      .where('block_height', block.height)
+    await knexTrx('input_staging')
+      .join('output', function joinOutput() {
+        this
+          .on('output.input_transaction_id', '=', 'input_staging.transaction_id')
+          .andOn('output.input_number', '=', 'input_staging.input_number');
+      })
       .delete();
   });
 }

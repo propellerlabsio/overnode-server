@@ -89,7 +89,7 @@ const sync = {
       }
 
       // Execute sync job
-      await functions[name](block);
+      await knex.transaction(knexTrx => functions[name](knexTrx, block));
 
       // If we get this far, clear any previous errors
       await sync.clearError(block.height);
