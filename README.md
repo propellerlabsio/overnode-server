@@ -11,11 +11,19 @@ There is an example client / UI implementation written in VueJs which is hosted 
 
 ## Prerequisites
 
-1. You need a Bitcoin Cash full node running with RPC access.  This software has been developed with Bitcoin Unlimited Cash but may work with others.
+1. You need a Bitcoin Cash node running with RPC access.  Overnode has been run with BitcoinABC and Bitcoin Unlimited Cash successfully. See [Node Settings](#node-settings) for expected node settings.
 
 2. You need an empty / dedicated postgresql database available.
 
 3. You need to configure your [Environment variables](#environment-variables).
+
+## Node settings
+
+Generally the following node settings are required or expected:
+
+	-usecashaddr=1 (default on most node implementations)
+	-server=1 (required for json-rpc)
+	-txindex=1 (required to sync transactions to overnode db)
 
 ## Building and running
 
