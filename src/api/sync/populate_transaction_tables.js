@@ -59,8 +59,11 @@ async function syncTransactionFromStack(knexTrx, virtualThreadNo, stack, block) 
         null;
 
       // Determine how many characters in address prefix ('bitcoincash:' or 'bchtest:')
-      const firstAddress = rawOutput.scriptPubKey.addresses[0];
-      const addressPrefixLength = firstAddress ? firstAddress.indexOf(':') + 1 : 0;
+      let addressPrefixLength = 0;
+      if (rawOutput.scriptPubKey.addresses) {
+        const firstAddress = rawOutput.scriptPubKey.addresses[0];
+        addressPrefixLength = firstAddress ? firstAddress.indexOf(':') + 1 : 0;
+      }
 
       // Addresses for outputs with multiple addresses go in output_address table
       if (address_count > 1) {
