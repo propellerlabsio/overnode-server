@@ -33,9 +33,6 @@ export function request(method, ...params) {
     };
 
     const req = http.request(options, (res) => {
-      if (res.statusCode !== 200) {
-        reject(new Error(`Bitcoin node responded with HTTP code ${res.statusCode}: ${res.statusMessage}`));
-      }
       res.setEncoding('utf8');
       res.on('data', (chunk) => {
         responseData = responseData.concat(chunk);
@@ -44,11 +41,18 @@ export function request(method, ...params) {
         if (responseData) {
           try {
             // Probably JSON response
-            resolve(JSON.parse(responseData).result);
+            const jsonResponse = JSON.parse(responseData);
+            if (jsonResponse.error) {
+              reject(new Error(`bitcoind error: ${JSON.stringify(jsonResponse.error)}`));
+            } else {
+              resolve(jsonResponse.result);
+            }
           } catch (err) {
             // Not a JSON response - probably just an error message in plaintext
             reject(new Error(`bitcoind returned: ${responseData}`));
           }
+        } else if (res.statusCode !== 200) {
+          reject(new Error(`Bitcoin node responded with HTTP code ${res.statusCode}: ${res.statusMessage}`));
         } else {
           resolve();
         }
@@ -74,7 +78,6 @@ export async function initialize() {
         throw new Error('No BITCOIN_RPC_AUTH or BITCOIN_COOKIE_DIRECTORY environment variables set.');
       } else {
         // Get RPC auth from cookie in Bitcoin data directory
-
         const fullPath = path.join(process.env.BITCOIN_COOKIE_DIRECTORY, '.cookie');
         auth = fs.readFileSync(fullPath);
       }

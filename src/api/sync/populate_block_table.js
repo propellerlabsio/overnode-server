@@ -3,14 +3,14 @@
 /* eslint-disable camelcase                                                   */
 
 import blocks from '../blocks';
-import { knex } from '../../io/knex';
 
 /**
  * Populates the database table 'block' with details of the provided block
  *
+ * @param {*} knexTrx         Knex transaction ("promise aware" knex connection)
  * @param {*} block           Full block details provided by bitcoind
  */
-export default async function populate_block_table(block) {
+export default async function populate_block_table(knexTrx, block) {
   // Determine value of calculated field: time interval between this block and the last
   let interval = 0;
   if (block.height > 0) {
@@ -23,7 +23,7 @@ export default async function populate_block_table(block) {
   }
 
   // Insert block into database using provided transaction
-  await knex('block').insert({
+  await knexTrx('block').insert({
     hash: block.hash,
     size: block.size,
     height: block.height,

@@ -53,7 +53,6 @@ knex
       // Graphql server
       app.use('/graphql', graphqlHTTP({
         schema,
-        context: { knex },
         graphiql: (process.env.GRAPHIQL === 'on'),
       }));
 

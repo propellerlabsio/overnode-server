@@ -8,9 +8,19 @@ import limits from '../api/limits';
 import node from '../api/node';
 import outputs from '../api/outputs';
 import peers from '../api/peers';
+import rpc from '../api/rpc';
 import search from '../api/search';
 import transactions from '../api/transactions';
 import users from '../api/users';
+
+function getToken(httpRequest) {
+  let token;
+  const { authorization } = httpRequest.headers;
+  if (authorization && authorization.substr(0, 6) === 'bearer') {
+    token = authorization.substr(7);
+  }
+  return token;
+}
 
 function pagedQuery(apiFunction, args) {
   const paging = args.paging || { paging: { offset: null, limit: null } };
@@ -69,10 +79,12 @@ const resolvers = {
     node: (root, args) => node.get(args),
     peer: (root, args) => peers.get(args),
     peers: (root, args) => peers.find(args),
-    transaction: (root, args) => transactions.get(args),
+    rpc_getrawtransaction: (root, { txid, verbose }, httpRequ) =>
+      rpc.getrawtransaction({ txid, verbose, token: getToken(httpRequ) }),
     search: (root, args) => search.simple(args),
     sync: (root, args) => sync.find(args),
     sync_error: (root, args) => pagedQuery(sync.findError, args),
+    transaction: (root, args) => transactions.get(args),
   },
   Transaction: {
     inputs: (transaction, args) => pagedQuery(inputs.find, Object.assign(args, transaction)),

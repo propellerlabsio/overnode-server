@@ -55,14 +55,14 @@ const typeDefs = `
       connections: Int!
       difficulty: Float!
       errors: String!
-      fork: String!
+      fork: String
       keypoololdest: Int!
       keypoolsize: Int!
       paytxfee:  Int!
       protocolversion: Int!
       proxy: String!
       relayfee: Float!
-      status: String!
+      status: String
       testnet: Boolean!
       timeoffset: Int!
       unlocked_until: Int!
@@ -104,7 +104,7 @@ const typeDefs = `
       bytesrecv: Float!
       conntime: Int!
       timeoffset: Float!
-      pingtime: Float!
+      pingtime: Float
       minping: Float!
       version: Int!
       subver: String!
@@ -130,6 +130,9 @@ const typeDefs = `
         host: Host!
 
         node: Node!
+
+        # Admin function: raw access to bitcoind transaction via JSON-RPC.
+        rpc_getrawtransaction(txid: String!,  verbose: Int): String
 
         sync: [SyncJob]
 

@@ -81,8 +81,9 @@ const users = {
     }),
 
   /**
-   * Validates a token returning an object with the user id and
-   * permissions
+   * Validates a token is valid, not expired and contains the
+   * nominated permission.  Throws exception if any of these
+   * tests fail otherwise returns without throwing exception.
    */
   validateAccess: ({ token, permission }) => {
     if (!token) {
@@ -109,10 +110,6 @@ const users = {
     if (!verifiedJwt.body.permissions.includes(permission)) {
       throw new Error(`The requestor does not have '${permission.split('_').join(' ')}' access permission.`);
     }
-    return {
-      id: String(verifiedJwt.body.sub),
-      permissions: verifiedJwt.body.permissions,
-    };
   },
 };
 
