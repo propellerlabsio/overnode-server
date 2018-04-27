@@ -78,7 +78,6 @@ export async function initialize() {
         throw new Error('No BITCOIN_RPC_AUTH or BITCOIN_COOKIE_DIRECTORY environment variables set.');
       } else {
         // Get RPC auth from cookie in Bitcoin data directory
-
         const fullPath = path.join(process.env.BITCOIN_COOKIE_DIRECTORY, '.cookie');
         auth = fs.readFileSync(fullPath);
       }
