@@ -88,8 +88,8 @@ const resolvers = {
     transaction: (root, args) => transactions.get(args),
   },
   Rpc: {
-    getinfo: () => rpc.getinfo(),
-    getrawtransaction: (root, { txid, verbose }) => rpc.getrawtransaction({ txid, verbose }),
+    getinfo: (root, args) => rpc.execute('getinfo', args),
+    getrawtransaction: (root, args) => rpc.execute('getrawtransaction', args),
   },
   Transaction: {
     inputs: (transaction, args) => pagedQuery(inputs.find, Object.assign(args, transaction)),

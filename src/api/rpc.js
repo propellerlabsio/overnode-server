@@ -12,15 +12,10 @@
 import { request } from '../io/rpc';
 
 const rpc = {
-  async getinfo() {
+  async execute(command, args) {
     // Execute request
-    return JSON.stringify(await request('getinfo'));
+    return JSON.stringify(await request(command, ...Object.values(args)));
   },
-  async getrawtransaction({ txid, verbose = 0 }) {
-    // Execute request
-    return JSON.stringify(await request('getrawtransaction', txid, verbose));
-  },
-
 };
 
 export default rpc;
