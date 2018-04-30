@@ -89,6 +89,7 @@ const resolvers = {
   },
   Rpc: {
     generate: (root, args) => rpc.execute('generate', args),
+    getbalance: (root, args) => rpc.execute('getbalance', args),
     getinfo: (root, args) => rpc.execute('getinfo', args),
     getrawtransaction: (root, args) => rpc.execute('getrawtransaction', args),
   },
