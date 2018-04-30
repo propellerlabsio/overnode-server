@@ -132,7 +132,7 @@ const typeDefs = `
         node: Node!
 
         # Admin function: raw access to bitcoind transaction via JSON-RPC.
-        rpc_getrawtransaction(txid: String!,  verbose: Int): String
+        rpc: Rpc
 
         sync: [SyncJob]
 
@@ -145,6 +145,17 @@ const typeDefs = `
         transaction(transaction_id: String!): Transaction
 
         search(term: String!): SearchResult
+    }
+     
+    # Direct access to bitcoind via JSON-RPC interface.  Admin function only.
+    type Rpc {
+      authorized: Boolean!
+
+      # DEPRECATED. Returns an object containing various state info.
+      getinfo: String
+
+      # Return the raw transaction data.      
+      getrawtransaction(txid: String!,  verbose: Int): String
     }
 
     type SearchResult {

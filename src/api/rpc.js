@@ -9,21 +9,14 @@
  * to site administrators.
  */
 
-import users from '../api/users';
 import { request } from '../io/rpc';
 
 const rpc = {
-  async getrawtransaction({ txid, verbose = 0, token }) {
-    if (!token) {
-      // No token
-      throw new Error('Not authorized.');
-    }
-
-    // Validate token provided hasn't expired and token gives requester
-    // admin rights
-    users.validateAccess({ token, permission: 'admin' });
-
-
+  async getinfo() {
+    // Execute request
+    return JSON.stringify(await request('getinfo'));
+  },
+  async getrawtransaction({ txid, verbose = 0 }) {
     // Execute request
     return JSON.stringify(await request('getrawtransaction', txid, verbose));
   },

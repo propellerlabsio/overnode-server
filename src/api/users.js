@@ -80,6 +80,20 @@ const users = {
       }
     }),
 
+  isAdmin(token) {
+    if (!token) {
+      // No token
+      throw new Error('Not authorized');
+    }
+
+    // Validate token provided hasn't expired and token gives requester
+    // admin rights (throws exception if not)
+    users.validateAccess({ token, permission: 'admin' });
+
+    // Return true if we get this far
+    return true;
+  },
+
   /**
    * Validates a token is valid, not expired and contains the
    * nominated permission.  Throws exception if any of these
