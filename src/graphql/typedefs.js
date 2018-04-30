@@ -151,7 +151,10 @@ const typeDefs = `
     type Rpc {
       authorized: Boolean!
 
-      # DEPRECATED. Returns an object containing various state info.
+      # Mine up to nblocks blocks immediately (before the RPC call returns) to an address in the wallet.
+      generate(nblocks: Int! = 1, maxtries: Int): String
+
+      # Returns an object containing various state info.
       getinfo: String
 
       # Return the raw transaction data.      
