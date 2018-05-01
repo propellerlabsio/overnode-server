@@ -91,6 +91,7 @@ const resolvers = {
     generate: (root, args) => rpc.execute('generate', args),
     getbalance: (root, args) => rpc.execute('getbalance', args),
     getinfo: (root, args) => rpc.execute('getinfo', args),
+    getnewaddress: (root, args) => rpc.execute('getnewaddress', args),
     getrawtransaction: (root, args) => rpc.execute('getrawtransaction', args),
   },
   Transaction: {

@@ -163,6 +163,11 @@ const typeDefs = `
       # Returns an object containing various state info.
       getinfo: String
 
+      # Returns a new Bitcoin address for receiving payments.
+      # If 'account' is specified (DEPRECATED), it is added to the address book 
+      # so payments received with the address will be credited to 'account'.
+      getnewaddress(account: String): String
+
       # Return the raw transaction data.      
       getrawtransaction(txid: String!,  verbose: Int): String
     }
