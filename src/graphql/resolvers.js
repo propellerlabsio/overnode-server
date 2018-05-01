@@ -93,6 +93,7 @@ const resolvers = {
     getinfo: (root, args) => rpc.execute('getinfo', args),
     getnewaddress: (root, args) => rpc.execute('getnewaddress', args),
     getrawtransaction: (root, args) => rpc.execute('getrawtransaction', args),
+    help: (root, args) => rpc.help(args),
   },
   Transaction: {
     inputs: (transaction, args) => pagedQuery(inputs.find, Object.assign(args, transaction)),

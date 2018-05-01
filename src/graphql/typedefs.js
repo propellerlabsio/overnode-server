@@ -152,9 +152,6 @@ const typeDefs = `
       authorized: Boolean!
 
       # If account is not specified, returns the server's total available balance.
-      # If account is specified (DEPRECATED), returns the balance in the account.
-      # Note that the account "" is not the same as leaving the parameter out.
-      # The server total may be different to the balance in the default "" account.
       getbalance(account: String = "*", minconf: Int = 1, include_watchonly: Boolean = false): String
 
       # Mine up to nblocks blocks immediately (before the RPC call returns) to an address in the wallet.
@@ -164,12 +161,13 @@ const typeDefs = `
       getinfo: String
 
       # Returns a new Bitcoin address for receiving payments.
-      # If 'account' is specified (DEPRECATED), it is added to the address book 
-      # so payments received with the address will be credited to 'account'.
       getnewaddress(account: String): String
 
       # Return the raw transaction data.      
       getrawtransaction(txid: String!,  verbose: Int): String
+
+      # List all commands, or get help for a specified command.
+      help(command: String): String
     }
 
     type SearchResult {
