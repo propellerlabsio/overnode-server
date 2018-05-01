@@ -15,6 +15,11 @@ import { knex } from '../io/knex';
 
 const maxHelpCacheDays = 7;
 
+function cachedDaysAgo(updatedDate) {
+  const now = moment();
+  return now.diff(moment(updatedDate), 'days');
+}
+
 const rpc = {
   async execute(command, args) {
     // Execute request
@@ -33,9 +38,7 @@ const rpc = {
       const cached = await knex('rpc_help')
         .where('command', command)
         .first();
-      const now = moment();
-      const cachedDaysAgo = now.diff(moment(cached.updated), 'days');
-      if (cached && cachedDaysAgo < maxHelpCacheDays) {
+      if (cached && cachedDaysAgo(cached.updated) < maxHelpCacheDays) {
         // eslint-disable-next-line prefer-destructuring
         help = cached.help;
       } else {
