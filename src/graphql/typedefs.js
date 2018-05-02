@@ -168,6 +168,12 @@ const typeDefs = `
 
       # List all commands, or get help for a specified command.
       help(command: String): String
+
+      # Returns array of unspent transaction outputs
+      listunspent(minconf: Int, maxconf: Int, addresses: [String], include_unsafe: Boolean): String
+
+      # Send an amount to a given address.
+      sendtoaddress(address: String!, amount:Float!, comment: String, comment_to: String, subtractfeefromamount: Boolean): String
     }
 
     type SearchResult {
