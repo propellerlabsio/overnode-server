@@ -60,7 +60,7 @@ const users = {
 
         // Build claims of JWT
         const claims = {
-          sub: user.id,
+          sub: user.email,
           iss: 'https://overnode.org',
           permissions,
         };
