@@ -5,6 +5,8 @@
 // implementation or roll our own.  Examples include:
 // Block.nonce, Host.totalmem, Peer.bytessent and bytesrecv.
 const typeDefs = `
+    scalar JSON
+
     type Address {
       address: String!
       totals: AddressTotals!
@@ -150,6 +152,9 @@ const typeDefs = `
     # Direct access to bitcoind via JSON-RPC interface.  Admin function only.
     type Rpc {
       authorized: Boolean!
+
+      # Create a transaction spending the given inputs and creating new outputs.
+     createrawtransaction(inputs: JSON, outputs: JSON, locktime: Int): String
 
       # If account is not specified, returns the server's total available balance.
       getbalance(account: String = "*", minconf: Int = 1, include_watchonly: Boolean = false): String

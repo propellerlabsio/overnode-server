@@ -12,6 +12,7 @@
     "express-graphql": "^0.6.11",
     "graphql": "^0.12.3",
     "graphql-tools": "^2.18.0",
+    "graphql-type-json": "^0.2.1",
     "knex": "^0.14.2",
     "moment": "^2.22.1",
     "njwt": "^0.4.0",

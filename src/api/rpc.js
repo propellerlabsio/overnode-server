@@ -22,8 +22,12 @@ function cachedDaysAgo(updatedDate) {
 
 const rpc = {
   async execute(command, args) {
+    // Remove undefined/null value args
+    const filteredArgs = Object.values(args)
+      .filter(arg => arg != null);
+
     // Execute request
-    return JSON.stringify(await request(command, ...Object.values(args)));
+    return JSON.stringify(await request(command, ...filteredArgs));
   },
 
   /**

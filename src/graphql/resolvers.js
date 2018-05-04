@@ -1,3 +1,5 @@
+import GraphQLJSON from 'graphql-type-json';
+
 import addresses from '../api/addresses';
 import blocks from '../api/blocks';
 import currencies from '../api/currencies';
@@ -63,6 +65,7 @@ const resolvers = {
       paging: args.paging,
     }),
   },
+  JSON: GraphQLJSON,
   Mutation: {
     createUser: (root, args) => users.create(args),
     requestToken: (root, args) => users.getToken(args),
@@ -88,6 +91,13 @@ const resolvers = {
     transaction: (root, args) => transactions.get(args),
   },
   Rpc: {
+    // eslint-disable-next-line no-shadow
+    createrawtransaction: (root, { inputs, outputs, locktime }) =>
+      rpc.execute('createrawtransaction', {
+        inputs: JSON.parse(inputs),
+        outputs: JSON.parse(outputs),
+        locktime,
+      }),
     generate: (root, args) => rpc.execute('generate', args),
     getbalance: (root, args) => rpc.execute('getbalance', args),
     getinfo: (root, args) => rpc.execute('getinfo', args),
