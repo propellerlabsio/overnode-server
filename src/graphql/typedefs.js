@@ -154,13 +154,19 @@ const typeDefs = `
       authorized: Boolean!
 
       # Create a transaction spending the given inputs and creating new outputs.
-     createrawtransaction(inputs: JSON, outputs: JSON, locktime: Int): String
+      createrawtransaction(inputs: JSON, outputs: JSON, locktime: Int): String
 
-      # If account is not specified, returns the server's total available balance.
-      getbalance(account: String = "*", minconf: Int = 1, include_watchonly: Boolean = false): String
+      # Return a JSON object representing the serialized, hex-encoded transaction.
+      decoderawtransaction(hexstring: String!): String
+
+      # Reveals the private key corresponding to 'address'.
+      dumpprivkey (address: String!): String
 
       # Mine up to nblocks blocks immediately (before the RPC call returns) to an address in the wallet.
       generate(nblocks: Int! = 1, maxtries: Int): String
+
+      # If account is not specified, returns the server's total available balance.
+      getbalance(account: String = "*", minconf: Int = 1, include_watchonly: Boolean = false): String
 
       # Returns an object containing various state info.
       getinfo: String
@@ -179,6 +185,12 @@ const typeDefs = `
 
       # Send an amount to a given address.
       sendtoaddress(address: String!, amount:Float!, comment: String, comment_to: String, subtractfeefromamount: Boolean): String
+
+      # Sign inputs for raw transaction (serialized, hex-encoded).
+      signrawtransaction(hexstring: String! prevtxs: JSON, privkeys: JSON, sighashtype: String): String
+
+      # Send the transaction (signed hex)
+      sendrawtransaction(hexstring: String!, allowhighfees: Boolean): String
     }
 
     type SearchResult {

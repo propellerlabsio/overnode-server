@@ -1,3 +1,4 @@
+/* eslint-disable object-curly-newline */
 import GraphQLJSON from 'graphql-type-json';
 
 import addresses from '../api/addresses';
@@ -91,6 +92,8 @@ const resolvers = {
     transaction: (root, args) => transactions.get(args),
   },
   Rpc: {
+    decoderawtransaction: (root, args) => rpc.execute('decoderawtransaction', args),
+    dumpprivkey: (root, args) => rpc.execute('dumpprivkey', args),
     // eslint-disable-next-line no-shadow
     createrawtransaction: (root, { inputs, outputs, locktime }) =>
       rpc.execute('createrawtransaction', {
@@ -104,7 +107,15 @@ const resolvers = {
     getnewaddress: (root, args) => rpc.execute('getnewaddress', args),
     getrawtransaction: (root, args) => rpc.execute('getrawtransaction', args),
     listunspent: (root, args) => rpc.execute('listunspent', args),
+    sendrawtransaction: (root, args) => rpc.execute('sendrawtransaction', args),
     sendtoaddress: (root, args) => rpc.execute('sendtoaddress', args),
+    signrawtransaction: (root, { hexstring, prevtxs, privkeys, sighashtype }) =>
+      rpc.execute('signrawtransaction', {
+        hexstring,
+        prevtxs: prevtxs ? JSON.parse(prevtxs) : null,
+        privkeys: privkeys ? JSON.parse(privkeys) : null,
+        sighashtype,
+      }),
     help: (root, args) => rpc.help(args),
   },
   Transaction: {
