@@ -136,6 +136,9 @@ const typeDefs = `
         # Admin function: raw access to bitcoind transaction via JSON-RPC.
         rpc: Rpc
 
+        # Get help for a specified JSON-RPC command.
+        rpc_help(command: String!): String
+
         sync: [SyncJob]
 
         sync_error(paging: Paging): [SyncError]
@@ -176,9 +179,6 @@ const typeDefs = `
 
       # Return the raw transaction data.      
       getrawtransaction(txid: String!,  verbose: Int): String
-
-      # List all commands, or get help for a specified command.
-      help(command: String): String
 
       # Returns array of unspent transaction outputs
       listunspent(minconf: Int, maxconf: Int, addresses: [String], include_unsafe: Boolean): String

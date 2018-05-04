@@ -89,6 +89,7 @@ const resolvers = {
     rpc(root, args, httpRequ) {
       return { authorized: users.isAdmin(getToken(httpRequ)) };
     },
+    rpc_help: (root, args) => rpc.help(args),
     transaction: (root, args) => transactions.get(args),
   },
   Rpc: {
@@ -116,7 +117,6 @@ const resolvers = {
         privkeys: privkeys ? JSON.parse(privkeys) : null,
         sighashtype,
       }),
-    help: (root, args) => rpc.help(args),
   },
   Transaction: {
     inputs: (transaction, args) => pagedQuery(inputs.find, Object.assign(args, transaction)),
