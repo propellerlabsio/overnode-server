@@ -101,7 +101,7 @@ const users = {
    */
   validateAccess: ({ token, permission }) => {
     if (!token) {
-      throw new Error('Missing access token');
+      throw new Error('Not authorized');
     }
     if (!permission) {
       throw new Error('Server error - invalid parameters in call to validateAccess');
@@ -114,15 +114,15 @@ const users = {
     } catch (err) {
       // Humanize error messages
       if (err.message.includes('expired')) {
-        throw new Error('Access token expired');
+        throw new Error('Access expired');
       } else {
-        throw new Error('Invalid access token');
+        throw new Error('Not authorized');
       }
     }
 
     // Verify permissions
     if (!verifiedJwt.body.permissions.includes(permission)) {
-      throw new Error(`The requestor does not have '${permission.split('_').join(' ')}' access permission.`);
+      throw new Error('Not authorized');
     }
   },
 };
