@@ -1,0 +1,2 @@
+#!/bin/bash
+node syncOneBlock.js | tail -n 1 >> log.log

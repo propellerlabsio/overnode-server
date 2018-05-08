@@ -10,6 +10,8 @@ import functions from './sync/functions';
 import { request as rpc } from '../io/rpc';
 import { middleTrim } from '../util/strings';
 
+const logger = require('winston');
+
 const sync = {
 
   // Constants
@@ -89,7 +91,9 @@ const sync = {
       }
 
       // Execute sync job
+      logger.profile(name);
       await knex.transaction(knexTrx => functions[name](knexTrx, block));
+      logger.profile(name);
 
       // If we get this far, clear any previous errors
       await sync.clearError(block.height);
