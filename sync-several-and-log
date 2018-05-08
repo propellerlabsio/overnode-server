@@ -1,0 +1,8 @@
+#!/bin/bash
+set -o nounset
+blocks=$1
+echo "height, seconds, txs, tx_per_sec, inputs, outputs" > log.log
+for ((i=1;i<=$1;i++))
+do
+  ./sync-one-log-last-line
+done
