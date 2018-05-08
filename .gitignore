@@ -5,3 +5,4 @@ migrations/20180224101048_kickoff_sync_transaction_job.js
 mainnet.env
 testnet.env
 regtest.env
+*.log
