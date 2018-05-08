@@ -36,16 +36,21 @@ rpc
                 console.log(log);
               });
             knex('block')
-              .select('tx_count')
-              .where('height', nextBlock)
+              .select('block.tx_count')
+              .sum('transaction.input_count as inputs')
+              .sum('transaction.output_count as outputs')
+              .where('block.height', nextBlock)
+              .join('transaction', 'block.height', 'transaction.block_height')
+              .groupBy('tx_count')
               .first()
-              .then(({ tx_count }) => {
+              .then((results) => {
+                const { tx_count, inputs, outputs } = results;
                 const endTime = Date.now();
                 const elapsedSecs = (endTime - startTime) / 1000;
                 const txPerSecond = tx_count / elapsedSecs;
 
-                // Output block, tx count, tx per second
-                console.log(`${nextBlock}, ${tx_count}, ${txPerSecond.toFixed(2)}`);
+                // Output block, seconds, tx count, tx per second, inputs, outputs
+                console.log(`${nextBlock}, ${elapsedSecs}, ${tx_count}, ${txPerSecond.toFixed(2)}, ${inputs}, ${outputs}`);
                 process.exit(0);
               });
           });
