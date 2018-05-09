@@ -50,6 +50,7 @@ rpc
                 const txPerSecond = tx_count / elapsedSecs;
 
                 // Output block, seconds, tx count, tx per second, inputs, outputs
+                console.log('height, seconds, txs, tx_per_sec, inputs, outputs');
                 console.log(`${nextBlock}, ${elapsedSecs}, ${tx_count}, ${txPerSecond.toFixed(2)}, ${inputs}, ${outputs}`);
                 process.exit(0);
               });
