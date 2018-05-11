@@ -183,7 +183,7 @@ async function main() {
   liveData.broadcast.height.peers = commonHeight ? commonHeight.height : 0;
 
   // Get the lowest and highest block we have fully synced to the database
-  const [{ from }, { to }] = await sync.getCoverage();
+  const { from, to } = await sync.getCoverage();
   liveData.broadcast.height.overnode.from = from;
   liveData.broadcast.height.overnode.to = to;
 

@@ -5,6 +5,7 @@
   "private": true,
   "main": "index.js",
   "dependencies": {
+    "arangojs": "^6.2.4",
     "axios": "^0.17.1",
     "cors": "^2.8.4",
     "dotenv": "^4.0.0",

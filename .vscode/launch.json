@@ -7,8 +7,9 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Backsync",
-      "program": "${workspaceFolder}/backSync.js"
+      "preLaunchTask": "build",
+      "name": "Sync one",
+      "program": "${workspaceFolder}/syncOneBlock.js"
     },
     {
       "type": "node",

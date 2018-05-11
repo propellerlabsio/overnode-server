@@ -9,8 +9,6 @@ exports.up = function (knex) {
         .comment('Name of function to be called for this job');
       table.integer('from_height').comment('Height of earliest block processed'),
       table.integer('to_height').comment('Height of last block processed');
-      table.integer('min_height').comment('Minimum block height that this sync should be performed');
-      table.integer('max_height').comment('Maximum block height that this sync should be performed');
     });
 };
 

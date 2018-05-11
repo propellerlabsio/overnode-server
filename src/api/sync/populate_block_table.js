@@ -2,15 +2,17 @@
 /* to non-programmers:                                                        */
 /* eslint-disable camelcase                                                   */
 
+import { db, isDuplicateKeyError } from '../../io/db';
 import blocks from '../blocks';
+
+const collection = db.collection('blocks');
 
 /**
  * Populates the database table 'block' with details of the provided block
  *
- * @param {*} knexTrx         Knex transaction ("promise aware" knex connection)
  * @param {*} block           Full block details provided by bitcoind
  */
-export default async function populate_block_table(knexTrx, block) {
+export default async function populate_block_table(block) {
   // Determine value of calculated field: time interval between this block and the last
   let interval = 0;
   if (block.height > 0) {
@@ -22,13 +24,28 @@ export default async function populate_block_table(knexTrx, block) {
     interval = block.time - lastBlock.time;
   }
 
-  // Insert block into database using provided transaction
-  await knexTrx('block').insert({
-    hash: block.hash,
-    size: block.size,
-    height: block.height,
-    time: block.time,
-    interval,
-    tx_count: block.tx.length,
-  });
+  // Upsert block into database
+  // There is no upsert in arangoDB javascript api so use update if insert fails
+  try {
+    await collection.save({
+      _key: block.hash,
+      size: block.size,
+      height: block.height,
+      time: block.time,
+      interval,
+      tx_count: block.tx.length,
+    });
+  } catch (err) {
+    if (isDuplicateKeyError(err)) {
+      await collection.update(block.hash, {
+        size: block.size,
+        height: block.height,
+        time: block.time,
+        interval,
+        tx_count: block.tx.length,
+      });
+    } else {
+      throw err;
+    }
+  }
 }
