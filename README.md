@@ -72,8 +72,10 @@ In local development, you can create a file in the application root directory ca
 
 The following is an example of the `.env` file contents:
 ```
-BITCOIN_RPC_AUTH=overnode:fOSJ+IbkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
-PG_CONNECTION_STRING=postgresql://overnode:overnode@localhost/overnode
+BITCOIN_COOKIE_DIRECTORY=/home/user/.bitcoin/
+DB_NAME=overnode
+DB_USER=overnode
+DB_PASSWORD=overnode
 NODE_ENV=development
 GRAPHIQL=on
 PORT=4000
@@ -88,17 +90,24 @@ The `user:password` for connecting to the bitcoin node via JSON-RPC.  If this en
 
 If no BITCOIN_RPC_AUTH is provided, this folder is read for a file called `.cookie` which is recreated on restart of the `bitcoind` daemon and contains the RPC credentials that can be used to log in.  **NOTE:** When connecting your node to `testnet` using BU Cash, the `.cookie` file will be placed in a subdirectory of your datadirectory - e.g. `/testnet3`.  The full path to the cookie must be included in this variable value.
 
+### DB_NAME
+
+ArangoDB database name.
+
+### DB_USER
+
+ArangoDB user name.
+
+### DB_PASSWORD
+
+ArangoDB user password.
+
+
 ### BITCOIN_RPC_HOST
 If not nominated, defaults to localhost '127.0.0.1'.
 
 ### BITCOIN_RPC_PORT
 If not nominated, defaults to 8332. Note that for testnet and regtest, the Bitcoin Unlimited Cash node software will default the RPC port to 18332.  If there are any doubts, configure the bitcoin node to start with a specific port using the `-rpcport=<port>` argument.
-
-### PG_CONNECTION_STRING
-
-A postgresql `conninfo` string to connect to the database in the format:
-
-`postgresql://<role>:<password>@<server>/<database>`
 
 ### NODE_ENV
 
