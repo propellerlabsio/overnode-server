@@ -12,6 +12,32 @@ export function isDuplicateKeyError(err) {
   return err.code === DUPE_KEY_ERROR_CODE && err.errorNum === DUPE_KEY_ERROR_NUM;
 }
 
+export async function upsert(collection, document) {
+  try {
+    await collection.save(document);
+  } catch (err) {
+    if (isDuplicateKeyError(err)) {
+      // eslint-disable-next-line no-underscore-dangle
+      await collection.update(document._key, document);
+    } else {
+      throw err;
+    }
+  }
+}
+
+export async function upsertEdge(collection, document, from, to) {
+  try {
+    await collection.save(document, from, to);
+  } catch (err) {
+    if (isDuplicateKeyError(err)) {
+      // eslint-disable-next-line no-underscore-dangle
+      await collection.update(document._key, document);
+    } else {
+      throw err;
+    }
+  }
+}
+
 
 // Database connection
 export const db = new Database();

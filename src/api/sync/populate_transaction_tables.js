@@ -4,6 +4,10 @@
 /* eslint-disable camelcase                                                   */
 
 import { request as rpc } from '../../io/rpc';
+import { db, upsert, upsertEdge } from '../../io/db';
+
+const transactionCollection = db.collection('transactions');
+const confirmationsCollection = db.edgeCollection('confirmations');
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
 // by default is configured to allow 16 concurrent calls from all processes
@@ -14,11 +18,10 @@ const MAX_CONCURRENT_TRANSACTIONS = 6;
 /**
  * Pop the next txid off the stack and sync it.  Then call this procedure again.
  *
- * @param {*} knexTrx         Knex transaction ("promise aware" knex connection)
  * @param {*} stack           Stack of transaction ids
  * @param {*} block           Block details
  */
-async function syncTransactionFromStack(knexTrx, virtualThreadNo, stack, block) {
+async function syncTransactionFromStack(virtualThreadNo, stack, block) {
   let promise;
 
   const transaction = stack.pop();
@@ -29,78 +32,85 @@ async function syncTransactionFromStack(knexTrx, virtualThreadNo, stack, block) 
 
     // Insert transaction into database
     // console.debug(`Virtual thread ${virtualThreadNo} Inserting transaction ${txid}`);
-    const insertTransactions = knexTrx('transaction').insert({
-      transaction_id: rawTx.txid,
+    await upsert(transactionCollection, {
+      _key: rawTx.txid,
       transaction_number: transaction.index,
       size: rawTx.size,
-      block_height: block.height,
+      // block_height: block.height,
       time: rawTx.time,
       input_count: rawTx.vin.length,
       output_count: rawTx.vout.length,
     });
 
+    await upsertEdge(
+      confirmationsCollection,
+      {},
+      `blocks/${block.hash}`,
+      `transactions/${rawTx.txid}`,
+    );
+
     // Insert transaction inputs into database.
-    const inputs = rawTx.vin.map((input, index) => ({
-      transaction_id: rawTx.txid,
-      input_number: index,
-      coinbase: input.coinbase,
-      output_transaction_id: input.txid,
-      output_number: input.vout,
-      block_height: block.height,
-      transaction_number: transaction.index,
-    }));
-    const insertInputs = knexTrx.insert(inputs).into('input_staging');
+    // const inputs = rawTx.vin.map((input, index) => ({
+    //   transaction_id: rawTx.txid,
+    //   input_number: index,
+    //   coinbase: input.coinbase,
+    //   output_transaction_id: input.txid,
+    //   output_number: input.vout,
+    //   block_height: block.height,
+    //   transaction_number: transaction.index,
+    // }));
+    // const insertInputs = knexTrx.insert(inputs).into('input_staging');
 
-    // Build transaction outputs for inserting into database.
-    const addresses = []; // For multiple output addresses
-    const outputs = rawTx.vout.map((rawOutput) => {
-      const address_count = rawOutput.scriptPubKey.addresses ?
-        rawOutput.scriptPubKey.addresses.length :
-        null;
+    // // Build transaction outputs for inserting into database.
+    // const addresses = []; // For multiple output addresses
+    // const outputs = rawTx.vout.map((rawOutput) => {
+    //   const address_count = rawOutput.scriptPubKey.addresses ?
+    //     rawOutput.scriptPubKey.addresses.length :
+    //     null;
 
-      // Determine how many characters in address prefix ('bitcoincash:' or 'bchtest:')
-      let addressPrefixLength = 0;
-      if (rawOutput.scriptPubKey.addresses) {
-        const firstAddress = rawOutput.scriptPubKey.addresses[0];
-        addressPrefixLength = firstAddress ? firstAddress.indexOf(':') + 1 : 0;
-      }
+    //   // Determine how many characters in address prefix ('bitcoincash:' or 'bchtest:')
+    //   let addressPrefixLength = 0;
+    //   if (rawOutput.scriptPubKey.addresses) {
+    //     const firstAddress = rawOutput.scriptPubKey.addresses[0];
+    //     addressPrefixLength = firstAddress ? firstAddress.indexOf(':') + 1 : 0;
+    //   }
 
-      // Addresses for outputs with multiple addresses go in output_address table
-      if (address_count > 1) {
-        rawOutput.scriptPubKey.addresses.forEach((rawAddress) => {
-          addresses.push({
-            transaction_id: rawTx.txid,
-            output_number: rawOutput.n,
-            address: rawAddress.substr(addressPrefixLength), // ditch 'bitcoincash:' prefix
-          });
-        });
-      }
+    //   // Addresses for outputs with multiple addresses go in output_address table
+    //   if (address_count > 1) {
+    //     rawOutput.scriptPubKey.addresses.forEach((rawAddress) => {
+    //       addresses.push({
+    //         transaction_id: rawTx.txid,
+    //         output_number: rawOutput.n,
+    //         address: rawAddress.substr(addressPrefixLength), // ditch 'bitcoincash:' prefix
+    //       });
+    //     });
+    //   }
 
-      // Build output table record.  Store address here if single address (most of them)
-      return {
-        transaction_id: rawTx.txid,
-        output_number: rawOutput.n,
-        value: rawOutput.value,
-        address: address_count === 1 ?
-          rawOutput.scriptPubKey.addresses[0].substr(addressPrefixLength) :
-          null,
-      };
-    });
+    //   // Build output table record.  Store address here if single address (most of them)
+    //   return {
+    //     transaction_id: rawTx.txid,
+    //     output_number: rawOutput.n,
+    //     value: rawOutput.value,
+    //     address: address_count === 1 ?
+    //       rawOutput.scriptPubKey.addresses[0].substr(addressPrefixLength) :
+    //       null,
+    //   };
+    // });
 
     // Create queries to insert outputs and output addresses
-    const insertOutputs = knexTrx.insert(outputs).into('output');
-    const insertAddresses = knexTrx('output_address').insert(addresses);
+    // const insertOutputs = knexTrx.insert(outputs).into('output');
+    // const insertAddresses = knexTrx('output_address').insert(addresses);
 
     // Do inserts in parallel
-    await Promise.all([
-      insertTransactions,
-      insertInputs,
-      insertOutputs,
-      insertAddresses,
-    ]);
+    // await Promise.all([
+    //   insertTransactions,
+    //   insertInputs,
+    //   insertOutputs,
+    //   insertAddresses,
+    // ]);
 
     // Use recursion to keep processing until stack is exhuasted
-    promise = syncTransactionFromStack(knexTrx, virtualThreadNo, stack, block);
+    promise = syncTransactionFromStack(virtualThreadNo, stack, block);
   }
 
   return promise;
@@ -110,10 +120,9 @@ async function syncTransactionFromStack(knexTrx, virtualThreadNo, stack, block) 
  * Populates the database tables 'transaction', 'output' and 'output_address'
  * with details of transactions in the provided block
  *
- * @param {*} knexTrx         Knex transaction ("promise aware" knex connection)
  * @param {*} block           Full block details provided by bitcoind
  */
-export default async function populate_transaction_tables(knexTrx, block) {
+export default async function populate_transaction_tables(block) {
   // Can't get transactions for the genesis block
   if (block.height === 0) {
     return;
@@ -139,7 +148,6 @@ export default async function populate_transaction_tables(knexTrx, block) {
     const stackToIndex = stackFromIndex + transactionsPerVirtualThread;
     const stackPortion = stack.slice(stackFromIndex, stackToIndex);
     promises.push(syncTransactionFromStack(
-      knexTrx,
       virtualThreadNumber,
       stackPortion,
       block,
@@ -153,42 +161,42 @@ export default async function populate_transaction_tables(knexTrx, block) {
   // convert them to spent outputs.  Can't do earlier due to parallelized processing
   // (outputs spent might be in another thread).  Start with moving coinbase to
   // block header
-  await knexTrx('input_staging')
-    .where('block_height', block.height)
-    .andWhere('transaction_number', 0)
-    .andWhere('input_number', 0)
-    .first()
-    .then(async (input) => {
-      await knexTrx('block')
-        .where('height', block.height)
-        .update('coinbase', input.coinbase);
-    })
-    .then(async () => {
-      await knexTrx('input_staging')
-        .where('block_height', block.height)
-        .andWhere('transaction_number', 0)
-        .andWhere('input_number', 0)
-        .delete();
-    })
-    .catch((err) => {
-      throw err;
-    });
+  // await knexTrx('input_staging')
+  //   .where('block_height', block.height)
+  //   .andWhere('transaction_number', 0)
+  //   .andWhere('input_number', 0)
+  //   .first()
+  //   .then(async (input) => {
+  //     await knexTrx('block')
+  //       .where('height', block.height)
+  //       .update('coinbase', input.coinbase);
+  //   })
+  //   .then(async () => {
+  //     await knexTrx('input_staging')
+  //       .where('block_height', block.height)
+  //       .andWhere('transaction_number', 0)
+  //       .andWhere('input_number', 0)
+  //       .delete();
+  //   })
+  //   .catch((err) => {
+  //     throw err;
+  //   });
 
   // Move inputs from input staging to fields in output table
-  await knexTrx.raw(`
-    UPDATE output
-    SET input_transaction_id = input_staging.transaction_id,
-      input_number = input_staging.input_number
-    FROM input_staging
-    WHERE output.transaction_id = input_staging.output_transaction_id
-      AND output.output_number = input_staging.output_number;   
-  `).then(async () => {
-    await knexTrx('input_staging')
-      .join('output', function joinOutput() {
-        this
-          .on('output.input_transaction_id', '=', 'input_staging.transaction_id')
-          .andOn('output.input_number', '=', 'input_staging.input_number');
-      })
-      .delete();
-  });
+  // await knexTrx.raw(`
+  //   UPDATE output
+  //   SET input_transaction_id = input_staging.transaction_id,
+  //     input_number = input_staging.input_number
+  //   FROM input_staging
+  //   WHERE output.transaction_id = input_staging.output_transaction_id
+  //     AND output.output_number = input_staging.output_number;
+  // `).then(async () => {
+  //   await knexTrx('input_staging')
+  //     .join('output', function joinOutput() {
+  //       this
+  //         .on('output.input_transaction_id', '=', 'input_staging.transaction_id')
+  //         .andOn('output.input_number', '=', 'input_staging.input_number');
+  //     })
+  //     .delete();
+  // });
 }

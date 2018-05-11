@@ -2,7 +2,7 @@
 /* to non-programmers:                                                        */
 /* eslint-disable camelcase                                                   */
 
-import { db, isDuplicateKeyError } from '../../io/db';
+import { db, upsert } from '../../io/db';
 import blocks from '../blocks';
 
 const collection = db.collection('blocks');
@@ -26,26 +26,13 @@ export default async function populate_block_table(block) {
 
   // Upsert block into database
   // There is no upsert in arangoDB javascript api so use update if insert fails
-  try {
-    await collection.save({
-      _key: block.hash,
-      size: block.size,
-      height: block.height,
-      time: block.time,
-      interval,
-      tx_count: block.tx.length,
-    });
-  } catch (err) {
-    if (isDuplicateKeyError(err)) {
-      await collection.update(block.hash, {
-        size: block.size,
-        height: block.height,
-        time: block.time,
-        interval,
-        tx_count: block.tx.length,
-      });
-    } else {
-      throw err;
-    }
-  }
+  const blockDocument = {
+    _key: block.hash,
+    size: block.size,
+    height: block.height,
+    time: block.time,
+    interval,
+    tx_count: block.tx.length,
+  };
+  await upsert(collection, blockDocument);
 }
