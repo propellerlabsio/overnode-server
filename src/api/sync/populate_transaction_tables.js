@@ -4,9 +4,12 @@
 /* eslint-disable camelcase                                                   */
 
 import { request as rpc } from '../../io/rpc';
-import { db, upsert, upsertEdge } from '../../io/db';
+import { db, upsert, createIgnoreDuplicate } from '../../io/db';
 
 const transactionCollection = db.collection('transactions');
+const outputsCollection = db.collection('outputs');
+const addressesCollection = db.collection('addresses');
+const receiptsCollection = db.edgeCollection('receipts');
 const confirmationsCollection = db.edgeCollection('confirmations');
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
@@ -14,6 +17,8 @@ const confirmationsCollection = db.edgeCollection('confirmations');
 // so we need to leave enough free for whatever other processes are hitting
 // bitcoind.
 const MAX_CONCURRENT_TRANSACTIONS = 6;
+
+let addressPrefixLength = null;
 
 /**
  * Pop the next txid off the stack and sync it.  Then call this procedure again.
@@ -27,24 +32,24 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
   const transaction = stack.pop();
   if (transaction) {
     // Get raw transaction
-    // console.debug(`Virtual thread ${virtualThreadNo} Getting transaction ${txid}`);
     const rawTx = await rpc('getrawtransaction', transaction.transaction_id, 1);
 
     // Insert transaction into database
-    // console.debug(`Virtual thread ${virtualThreadNo} Inserting transaction ${txid}`);
     await upsert(transactionCollection, {
       _key: rawTx.txid,
       transaction_number: transaction.index,
       size: rawTx.size,
-      // block_height: block.height,
       time: rawTx.time,
       input_count: rawTx.vin.length,
       output_count: rawTx.vout.length,
     });
 
-    await upsertEdge(
+    // Create edge linking block and tx
+    await createIgnoreDuplicate(
       confirmationsCollection,
-      {},
+      {
+        _key: rawTx.txid,
+      },
       `blocks/${block.hash}`,
       `transactions/${rawTx.txid}`,
     );
@@ -61,41 +66,56 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     // }));
     // const insertInputs = knexTrx.insert(inputs).into('input_staging');
 
-    // // Build transaction outputs for inserting into database.
-    // const addresses = []; // For multiple output addresses
-    // const outputs = rawTx.vout.map((rawOutput) => {
-    //   const address_count = rawOutput.scriptPubKey.addresses ?
-    //     rawOutput.scriptPubKey.addresses.length :
-    //     null;
+    // Build array of promises to create entries in outputs, addresses and receipts
+    const createAddresses = [];
+    const createReceipts = [];
+    const createOutputs = rawTx.vout.map((rawOutput) => {
+      // Create key uniquely identifying output
+      const outputKey = `${rawTx.txid}:${rawOutput.n}`;
 
-    //   // Determine how many characters in address prefix ('bitcoincash:' or 'bchtest:')
-    //   let addressPrefixLength = 0;
-    //   if (rawOutput.scriptPubKey.addresses) {
-    //     const firstAddress = rawOutput.scriptPubKey.addresses[0];
-    //     addressPrefixLength = firstAddress ? firstAddress.indexOf(':') + 1 : 0;
-    //   }
+      // Determine how many characters in address prefix ('bitcoincash:' or 'bchtest:')
+      if (addressPrefixLength === null && rawOutput.scriptPubKey.addresses) {
+        const firstAddress = rawOutput.scriptPubKey.addresses[0];
+        addressPrefixLength = firstAddress ? firstAddress.indexOf(':') + 1 : 0;
+      }
 
-    //   // Addresses for outputs with multiple addresses go in output_address table
-    //   if (address_count > 1) {
-    //     rawOutput.scriptPubKey.addresses.forEach((rawAddress) => {
-    //       addresses.push({
-    //         transaction_id: rawTx.txid,
-    //         output_number: rawOutput.n,
-    //         address: rawAddress.substr(addressPrefixLength), // ditch 'bitcoincash:' prefix
-    //       });
-    //     });
-    //   }
+      // Addresses for outputs with multiple addresses go in output_address table
+      rawOutput.scriptPubKey.addresses.forEach((rawAddress) => {
+        // ditch 'bitcoincash:', 'bchtest:' etc prefix
+        const cleanAddress = rawAddress.substr(addressPrefixLength);
 
-    //   // Build output table record.  Store address here if single address (most of them)
-    //   return {
-    //     transaction_id: rawTx.txid,
-    //     output_number: rawOutput.n,
-    //     value: rawOutput.value,
-    //     address: address_count === 1 ?
-    //       rawOutput.scriptPubKey.addresses[0].substr(addressPrefixLength) :
-    //       null,
-    //   };
-    // });
+        createAddresses.push(createIgnoreDuplicate(addressesCollection, {
+          _key: cleanAddress,
+        }));
+
+        createReceipts.push(createIgnoreDuplicate(
+          receiptsCollection,
+          {
+            _key: outputKey,
+          },
+          outputKey,
+          cleanAddress,
+        ));
+      });
+
+      // Build output table record.  Store address here if single address (most of them)
+      return upsert(outputsCollection, {
+        _key: outputKey,
+        transaction_id: rawTx.txid,
+        output_number: rawOutput.n,
+        value: rawOutput.value,
+        // address: address_count === 1 ?
+        //   rawOutput.scriptPubKey.addresses[0].substr(addressPrefixLength) :
+        //   null,
+      });
+    });
+
+    // Create outputs and addresses in parallel
+    await Promise.all(createOutputs.concat(createAddresses));
+
+    // Create received edges joining outputs with addresses
+    await Promise.all(createReceipts);
+
 
     // Create queries to insert outputs and output addresses
     // const insertOutputs = knexTrx.insert(outputs).into('output');

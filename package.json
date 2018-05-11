@@ -29,7 +29,7 @@
     "eslint-plugin-import": "^2.8.0"
   },
   "scripts": {
-    "build": "babel src -d dist --copy-files",
+    "build": "rm -r dist/; babel src --source-maps -d dist --copy-files",
     "dev": "npm run build && node index",
     "test": "echo \"Error: no test specified\" && exit 1",
     "postversion": "git push && git push --tags"

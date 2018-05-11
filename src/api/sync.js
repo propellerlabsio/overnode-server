@@ -5,12 +5,12 @@
 /* Allow console messages from this file only (important log info)             */
 /* eslint-disable no-console                                                   */
 
-import { db } from '../io/db';
+import { db, upsert } from '../io/db';
 import functions from './sync/functions';
 import { request as rpc } from '../io/rpc';
 import { middleTrim } from '../util/strings';
 
-const syncCollection = db.collection('sync');
+const collection = db.collection('sync');
 
 const sync = {
 
@@ -22,7 +22,15 @@ const sync = {
    * Return single sync job uniquely identified by name
    */
   get: async ({ name }) => {
-    const [job] = await syncCollection.lookupByKeys([name]);
+    let [job] = await collection.lookupByKeys([name]);
+    if (!job) {
+      job = {
+        name,
+        from_height: 0,
+        to_height: -1, // next block is first - ie zero
+      };
+    }
+
     return job;
   },
 
@@ -40,7 +48,15 @@ const sync = {
           from, 
           to 
     }`);
-    return cursor.next();
+    const coverage = await cursor.next();
+    if (coverage.from === null) {
+      coverage.from = 0;
+    }
+    if (coverage.to === null) {
+      coverage.to = -1; // next block is first block - ie 0
+    }
+
+    return coverage;
   },
 
   /**
@@ -148,7 +164,9 @@ const sync = {
    * Update sync job details in the database
    */
   update: ({ name, newHeight, direction }) => {
-    const updateValues = {};
+    const updateValues = {
+      _key: name,
+    };
 
     if (newHeight !== undefined) {
       if (direction === sync.FORWARD) {
@@ -159,7 +177,7 @@ const sync = {
     }
 
     // Do update
-    return syncCollection.update(name, updateValues);
+    return upsert(collection, updateValues);
   },
 
 

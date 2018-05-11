@@ -6,5 +6,7 @@
         "node": "current"
       }
     }]
-  ]
+  ],
+  "comments": false,
+  "minified": true,
 }
