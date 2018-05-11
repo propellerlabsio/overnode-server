@@ -29,10 +29,12 @@
     "eslint-plugin-import": "^2.8.0"
   },
   "scripts": {
-    "build": "rm -r dist/; babel src --source-maps -d dist --copy-files",
+    "build": "rm -r dist/; babel src -d dist --copy-files",
     "dev": "npm run build && node index",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postversion": "git push && git push --tags"
+    "migrate:rollback": "node migrate rollback",
+    "migrate:latest": "node migrate latest",
+    "postversion": "git push && git push --tags",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Peter Roehlen, propellerlabs.com",
   "license": "MIT"

@@ -15,6 +15,26 @@
       "type": "node",
       "request": "launch",
       "preLaunchTask": "build",
+      "name": "migrate:rollback",
+      "program": "${workspaceFolder}/migrate.js",
+      "args": [
+        "rollback"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "name": "migrate:latest",
+      "program": "${workspaceFolder}/migrate.js",
+      "args": [
+        "latest"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "build",
       "name": "Build and run",
       "program": "${workspaceFolder}/index.js"
     },
