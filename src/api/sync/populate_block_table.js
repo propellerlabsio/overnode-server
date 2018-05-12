@@ -26,9 +26,9 @@ export default async function populate_block_table(block) {
   // Upsert block into database
   // There is no upsert in arangoDB javascript api so use update if insert fails
   const blockDocument = {
-    _key: block.hash,
+    _key: block.height.toString(),
     size: block.size,
-    height: block.height,
+    hash: block.hash,
     time: block.time,
     interval,
     tx_count: block.tx.length,

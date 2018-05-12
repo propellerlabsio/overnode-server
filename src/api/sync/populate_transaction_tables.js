@@ -48,9 +48,9 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     await createIgnoreDuplicate(
       confirmationsCollection,
       {
-        _key: rawTx.txid,
+        _key: `${block.height}:${transaction.index}`,
       },
-      `blocks/${block.hash}`,
+      `blocks/${block.height}`,
       `transactions/${rawTx.txid}`,
     );
 
