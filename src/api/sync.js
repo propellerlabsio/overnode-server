@@ -10,7 +10,8 @@ import functions from './sync/functions';
 import { request as rpc } from '../io/rpc';
 import { middleTrim } from '../util/strings';
 
-const collection = db.collection('sync');
+const syncCollection = db.collection('sync');
+const errorCollection = db.collection('sync_errors');
 
 const sync = {
 
@@ -22,7 +23,7 @@ const sync = {
    * Return single sync job uniquely identified by name
    */
   get: async ({ name }) => {
-    let [job] = await collection.lookupByKeys([name]);
+    let [job] = await syncCollection.lookupByKeys([name]);
     if (!job) {
       job = {
         name,
@@ -64,16 +65,17 @@ const sync = {
    */
   find: () => db.query('for job in sync return job').all(),
 
-  // TODO convert to arangodb
   /**
    * Return all sync errors matching criteria
    */
-  // findError: ({ paging }) =>
-  //   knex('sync_error')
-  //     .select()
-  //     .offset(paging.offset)
-  //     .limit(paging.limit)
-  //     .orderBy('height'),
+  // TODO implement paging
+  // eslint-disable-next-line
+  findError: ({ paging }) =>
+    errorCollection
+      .all(),
+  // .offset(paging.offset)
+  // .limit(paging.limit)
+  // .orderBy('height'),
 
   /**
    * Execute a given sync job with a given block
@@ -96,8 +98,7 @@ const sync = {
       await functions[name](block);
 
       // If we get this far, clear any previous errors
-      // TODO convert to arangodb
-      // await sync.clearError(block.height);
+      await sync.clearError(block.height, name);
 
       // Record block as processed so next block can be picked up
       await sync.update({
@@ -126,39 +127,25 @@ const sync = {
   },
 
   logError: async ({ height, name, message }) => {
-    // TODO convert to arangodb
-    // const table = knex('sync_error');
     const trimmedMessage = middleTrim(message, 255);
 
     // TODO remove
     console.error(`Sync error at height ${height} in job ${name}, message: ${trimmedMessage}`);
 
-    // May have prexisting error from previous attempt - need to find as knex doesn't do upserts
-    // const existing = await table.where('height', height).first();
-
-    // Update or insert new error
-    // if (existing) {
-    //   await table
-    //     .where('height', height)
-    //     .update({
-    //       name,
-    //       message: trimmedMessage,
-    //     });
-    // } else {
-    //   await table.insert({
-    //     height,
-    //     name,
-    //     message: trimmedMessage,
-    //   });
-    // }
+    await upsert(errorCollection, {
+      _key: `${name}:${height}`,
+      height,
+      name,
+      message: trimmedMessage,
+    });
   },
 
-  // TODO convert to arangodb
-  // clearError(height) {
-  //   return knex('sync_error')
-  //     .where('height', height)
-  //     .delete();
-  // },
+  async clearError(height, name) {
+    await errorCollection
+      .removeByExample({
+        _key: `${name}:${height}`
+      });
+  },
 
   /**
    * Update sync job details in the database
@@ -177,7 +164,7 @@ const sync = {
     }
 
     // Do update
-    return upsert(collection, updateValues);
+    return upsert(syncCollection, updateValues);
   },
 
 
@@ -190,7 +177,6 @@ const sync = {
       throw new Error('Invalid or no sync direction provided.');
     }
 
-    // Process blocks unless/until we hit MAX_ERRORS
     // For each block in range
     for (let height = fromHeight; height !== (toHeight + direction); height += direction) {
       try {
