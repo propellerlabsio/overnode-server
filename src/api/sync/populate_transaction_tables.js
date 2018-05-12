@@ -10,6 +10,7 @@ const transactionCollection = db.collection('transactions');
 const outputsCollection = db.edgeCollection('outputs');
 const addressesCollection = db.collection('addresses');
 const confirmationsCollection = db.edgeCollection('confirmations');
+const scriptsCollection = db.collection('scripts');
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
 // by default is configured to allow 16 concurrent calls from all processes
@@ -89,10 +90,6 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
             _key: cleanAddress,
           }));
 
-          console.log(
-            `transactions/${rawTx.txid}`,
-            `addresses/${cleanAddress}`,
-          );
           createOutputs.push(createIgnoreDuplicate(
             outputsCollection,
             {
@@ -105,7 +102,20 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
           ));
         });
       } else {
-        debugger;
+        createScripts.push(createIgnoreDuplicate(scriptsCollection, {
+          _key: outputKey,
+        }));
+
+        createOutputs.push(createIgnoreDuplicate(
+          outputsCollection,
+          {
+            _key: outputKey,
+            output_number: rawOutput.n,
+            value: rawOutput.value,
+          },
+          `transactions/${rawTx.txid}`,
+          `scripts/${outputKey}`,
+        ));
       }
     });
 
