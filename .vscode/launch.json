@@ -15,10 +15,10 @@
       "type": "node",
       "request": "launch",
       "preLaunchTask": "build",
-      "name": "Sync 100",
+      "name": "Sync 10000",
       "program": "${workspaceFolder}/syncBlocks.js",
       "args": [
-        "100"
+        "10000"
       ]
     },
     {

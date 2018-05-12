@@ -21,7 +21,6 @@ async function syncBlock() {
     .then(({ to }) => {
       const nextBlock = to + 1;
       // const startTime = Date.now();
-      console.log(`Syncing block ${nextBlock}`);
       return sync
         .process({
           fromHeight: nextBlock,
@@ -54,7 +53,6 @@ async function syncBlock() {
           //                    ${txPerSecond.toFixed(2)}, ${inputs}, ${outputs}`);
           // process.exit(0);
           // });
-          console.log('Block sync finished');
         });
     });
 }

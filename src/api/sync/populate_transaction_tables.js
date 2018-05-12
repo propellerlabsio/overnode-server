@@ -7,9 +7,8 @@ import { request as rpc } from '../../io/rpc';
 import { db, upsert, createIgnoreDuplicate } from '../../io/db';
 
 const transactionCollection = db.collection('transactions');
-const outputsCollection = db.collection('outputs');
+const outputsCollection = db.edgeCollection('outputs');
 const addressesCollection = db.collection('addresses');
-const receivedCollection = db.edgeCollection('received');
 const confirmationsCollection = db.edgeCollection('confirmations');
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
@@ -68,8 +67,9 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
 
     // Build array of promises to create entries in outputs, addresses and received
     const createAddresses = [];
-    const createReceived = [];
-    const createOutputs = rawTx.vout.map((rawOutput) => {
+    const createOutputs = [];
+    const createScripts = [];
+    rawTx.vout.forEach((rawOutput) => {
       // Create key uniquely identifying output
       const outputKey = `${rawTx.txid}:${rawOutput.n}`;
 
@@ -80,7 +80,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
       }
 
       // Addresses for outputs with multiple addresses go in output_address table
-      if (rawOutput.scriptPubKey.addresses) {
+      if (rawOutput.scriptPubKey.addresses && rawOutput.scriptPubKey.addresses.length) {
         rawOutput.scriptPubKey.addresses.forEach((rawAddress) => {
           // ditch 'bitcoincash:', 'bchtest:' etc prefix
           const cleanAddress = rawAddress.substr(addressPrefixLength);
@@ -89,34 +89,31 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
             _key: cleanAddress,
           }));
 
-          createReceived.push(createIgnoreDuplicate(
-            receivedCollection,
+          console.log(
+            `transactions/${rawTx.txid}`,
+            `addresses/${cleanAddress}`,
+          );
+          createOutputs.push(createIgnoreDuplicate(
+            outputsCollection,
             {
               _key: outputKey,
+              output_number: rawOutput.n,
+              value: rawOutput.value,
             },
-            `outputs/${outputKey}`,
+            `transactions/${rawTx.txid}`,
             `addresses/${cleanAddress}`,
           ));
         });
+      } else {
+        debugger;
       }
-
-      // Build output table record.  Store address here if single address (most of them)
-      return upsert(outputsCollection, {
-        _key: outputKey,
-        transaction_id: rawTx.txid,
-        output_number: rawOutput.n,
-        value: rawOutput.value,
-        // address: address_count === 1 ?
-        //   rawOutput.scriptPubKey.addresses[0].substr(addressPrefixLength) :
-        //   null,
-      });
     });
 
-    // Create outputs and addresses in parallel
-    await Promise.all(createOutputs.concat(createAddresses));
+    // Create scripts and addresses in parallel
+    await Promise.all(createScripts.concat(createAddresses));
 
-    // Create received edges joining outputs with addresses
-    await Promise.all(createReceived);
+    // Create outputs edges joining transactions with addresses and scripts
+    await Promise.all(createOutputs);
 
 
     // Create queries to insert outputs and output addresses
