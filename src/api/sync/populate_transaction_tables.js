@@ -9,7 +9,7 @@ import { db, upsert, createIgnoreDuplicate } from '../../io/db';
 const transactionCollection = db.collection('transactions');
 const outputsCollection = db.collection('outputs');
 const addressesCollection = db.collection('addresses');
-const receiptsCollection = db.edgeCollection('receipts');
+const receivedCollection = db.edgeCollection('received');
 const confirmationsCollection = db.edgeCollection('confirmations');
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
@@ -66,9 +66,9 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     // }));
     // const insertInputs = knexTrx.insert(inputs).into('input_staging');
 
-    // Build array of promises to create entries in outputs, addresses and receipts
+    // Build array of promises to create entries in outputs, addresses and received
     const createAddresses = [];
-    const createReceipts = [];
+    const createReceived = [];
     const createOutputs = rawTx.vout.map((rawOutput) => {
       // Create key uniquely identifying output
       const outputKey = `${rawTx.txid}:${rawOutput.n}`;
@@ -88,13 +88,13 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
           _key: cleanAddress,
         }));
 
-        createReceipts.push(createIgnoreDuplicate(
-          receiptsCollection,
+        createReceived.push(createIgnoreDuplicate(
+          receivedCollection,
           {
             _key: outputKey,
           },
-          outputKey,
-          cleanAddress,
+          `outputs/${outputKey}`,
+          `addresses/${cleanAddress}`,
         ));
       });
 
@@ -114,7 +114,7 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     await Promise.all(createOutputs.concat(createAddresses));
 
     // Create received edges joining outputs with addresses
-    await Promise.all(createReceipts);
+    await Promise.all(createReceived);
 
 
     // Create queries to insert outputs and output addresses
