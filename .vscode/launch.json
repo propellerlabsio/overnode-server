@@ -9,7 +9,17 @@
       "request": "launch",
       "preLaunchTask": "build",
       "name": "Sync one",
-      "program": "${workspaceFolder}/syncOneBlock.js"
+      "program": "${workspaceFolder}/syncBlocks.js"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "name": "Sync 100",
+      "program": "${workspaceFolder}/syncBlocks.js",
+      "args": [
+        "100"
+      ]
     },
     {
       "type": "node",

@@ -80,23 +80,25 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
       }
 
       // Addresses for outputs with multiple addresses go in output_address table
-      rawOutput.scriptPubKey.addresses.forEach((rawAddress) => {
-        // ditch 'bitcoincash:', 'bchtest:' etc prefix
-        const cleanAddress = rawAddress.substr(addressPrefixLength);
+      if (rawOutput.scriptPubKey.addresses) {
+        rawOutput.scriptPubKey.addresses.forEach((rawAddress) => {
+          // ditch 'bitcoincash:', 'bchtest:' etc prefix
+          const cleanAddress = rawAddress.substr(addressPrefixLength);
 
-        createAddresses.push(createIgnoreDuplicate(addressesCollection, {
-          _key: cleanAddress,
-        }));
+          createAddresses.push(createIgnoreDuplicate(addressesCollection, {
+            _key: cleanAddress,
+          }));
 
-        createReceived.push(createIgnoreDuplicate(
-          receivedCollection,
-          {
-            _key: outputKey,
-          },
-          `outputs/${outputKey}`,
-          `addresses/${cleanAddress}`,
-        ));
-      });
+          createReceived.push(createIgnoreDuplicate(
+            receivedCollection,
+            {
+              _key: outputKey,
+            },
+            `outputs/${outputKey}`,
+            `addresses/${cleanAddress}`,
+          ));
+        });
+      }
 
       // Build output table record.  Store address here if single address (most of them)
       return upsert(outputsCollection, {

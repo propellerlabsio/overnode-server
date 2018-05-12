@@ -18,10 +18,9 @@ export default async function populate_block_table(block) {
   if (block.height > 0) {
     const lastBlockHeight = block.height - 1;
     const lastBlock = await blocks.get({ height: lastBlockHeight });
-    if (!lastBlock) {
-      throw new Error(`Can't find previous block ${lastBlockHeight} in database`);
+    if (lastBlock) {
+      interval = block.time - lastBlock.time;
     }
-    interval = block.time - lastBlock.time;
   }
 
   // Upsert block into database
