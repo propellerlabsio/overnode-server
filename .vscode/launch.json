@@ -15,6 +15,16 @@
       "type": "node",
       "request": "launch",
       "preLaunchTask": "build",
+      "name": "Sync 100",
+      "program": "${workspaceFolder}/syncBlocks.js",
+      "args": [
+        "100"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "preLaunchTask": "build",
       "name": "Sync 10000",
       "program": "${workspaceFolder}/syncBlocks.js",
       "args": [

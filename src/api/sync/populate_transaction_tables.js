@@ -6,11 +6,14 @@
 import { request as rpc } from '../../io/rpc';
 import { db, upsert, createIgnoreDuplicate } from '../../io/db';
 
-const transactionCollection = db.collection('transactions');
-const outputsCollection = db.edgeCollection('outputs');
 const addressesCollection = db.collection('addresses');
+const coinsCollection = db.collection('new_coins');
 const confirmationsCollection = db.edgeCollection('confirmations');
+const inputsCollection = db.edgeCollection('inputs');
+const outputsCollection = db.edgeCollection('outputs');
 const scriptsCollection = db.collection('scripts');
+const stagedInputsCollection = db.collection('staged_inputs');
+const transactionCollection = db.collection('transactions');
 
 // Maximum number of concurrent transactions we will process.  Bitcoin RPC
 // by default is configured to allow 16 concurrent calls from all processes
@@ -19,6 +22,55 @@ const scriptsCollection = db.collection('scripts');
 const MAX_CONCURRENT_TRANSACTIONS = 6;
 
 let addressPrefixLength = null;
+
+/**
+ * Attempt to create input as edge spending output.  It may
+ * fail if input spends an output in the same block that
+ * hasn't been created yet.  If it fails, move it to input staging
+ * where we'll process it later.
+ * @param {*} input
+ */
+async function createInputOrStage(input) {
+  const inputKey = `${input.transaction_id}:${input.input_number}`;
+  try {
+    if (input.coinbase) {
+      const coinkey = input.block_height.toString();
+      await createIgnoreDuplicate(
+        coinsCollection,
+        {
+          _key: coinkey,
+          coinbase: input.coinbase,
+        },
+      );
+
+      await createIgnoreDuplicate(
+        inputsCollection,
+        {
+          _key: inputKey,
+        },
+        `new_coins/${coinkey}`,
+        `transactions/${input.transaction_id}`,
+      );
+    } else {
+      const outputKey = `${input.output_transaction_id}:${input.output_number}`;
+      await createIgnoreDuplicate(
+        inputsCollection,
+        {
+          _key: inputKey,
+        },
+        `outputs/${outputKey}`,
+        `transactions/${input.transaction_id}`,
+      );
+    }
+  } catch (err) {
+    // Stage input for later processing
+    await createIgnoreDuplicate(
+      stagedInputsCollection,
+      Object.assign({ _key: inputKey }, input),
+    );
+  }
+}
+
 
 /**
  * Pop the next txid off the stack and sync it.  Then call this procedure again.
@@ -50,21 +102,25 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
       {
         _key: `${block.height}:${transaction.index}`,
       },
-      `blocks/${block.height}`,
       `transactions/${rawTx.txid}`,
+      `blocks/${block.height}`,
     );
 
     // Insert transaction inputs into database.
-    // const inputs = rawTx.vin.map((input, index) => ({
-    //   transaction_id: rawTx.txid,
-    //   input_number: index,
-    //   coinbase: input.coinbase,
-    //   output_transaction_id: input.txid,
-    //   output_number: input.vout,
-    //   block_height: block.height,
-    //   transaction_number: transaction.index,
-    // }));
-    // const insertInputs = knexTrx.insert(inputs).into('input_staging');
+    // if (rawTx.vin.length) {
+    //   debugger;
+    // }
+    const createInputs = rawTx.vin
+      .map((input, index) => ({
+        transaction_id: rawTx.txid,
+        input_number: index,
+        coinbase: input.coinbase,
+        output_transaction_id: input.txid,
+        output_number: input.vout,
+        block_height: block.height,
+        transaction_number: transaction.index,
+      }))
+      .map(input => createInputOrStage(input));
 
     // Build array of promises to create entries in outputs, addresses and received
     const createAddresses = [];
@@ -125,6 +181,8 @@ async function syncTransactionFromStack(virtualThreadNo, stack, block) {
     // Create outputs edges joining transactions with addresses and scripts
     await Promise.all(createOutputs);
 
+    // Create input edges joining transaction with (now spent) outputs
+    await Promise.all(createInputs);
 
     // Create queries to insert outputs and output addresses
     // const insertOutputs = knexTrx.insert(outputs).into('output');
