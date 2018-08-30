@@ -6,7 +6,7 @@ const transactions = {
   get: async ({ transaction_id }) => {
     const transaction = await request('getrawtransaction', transaction_id, 1);
     const block = await request('getblock', transaction.blockhash);
-    
+
     return {
       transaction_id: transaction.txid,
       transaction_number: block.tx.indexOf(transaction_id),
@@ -18,13 +18,12 @@ const transactions = {
     };
   },
   findByBlock: ({ block, paging }) => {
-    console.log(block, paging);
     const promises = block.tx
       .slice(paging.offset, (paging.offset + paging.limit))
       .map(txId => transactions.get({ transaction_id: txId }));
     return Promise.all(promises);
   },
-    
+
   // knex('transaction')
   //   .where('block_height', block.height)
   //   .andWhere('transaction_number', '>=', paging.offset)
