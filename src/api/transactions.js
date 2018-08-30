@@ -4,14 +4,8 @@ import { request } from '../io/rpc';
 
 const transactions = {
   get: async ({ transaction_id }) => {
-  // knex('transaction')
-  //   .where('transaction_id', transaction_id)
-  //   .first(),
-
-    debugger;
     const transaction = await request('getrawtransaction', transaction_id, 1);
     const block = await request('getblock', transaction.blockhash);
-    debugger;
     
     return {
       transaction_id: transaction.txid,
@@ -23,7 +17,14 @@ const transactions = {
       output_count: transaction.vout.length,
     };
   },
-  findByBlock: ({ block, paging }) => [],
+  findByBlock: ({ block, paging }) => {
+    console.log(block, paging);
+    const promises = block.tx
+      .slice(paging.offset, (paging.offset + paging.limit))
+      .map(txId => transactions.get({ transaction_id: txId }));
+    return Promise.all(promises);
+  },
+    
   // knex('transaction')
   //   .where('block_height', block.height)
   //   .andWhere('transaction_number', '>=', paging.offset)
