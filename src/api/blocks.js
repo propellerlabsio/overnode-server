@@ -10,12 +10,6 @@ const blocks = {
     if (block.height > 1) {
       lastBlock = await request('getblock', (block.height - 1).toString());
     }
-    // const indexField = hash ? 'hash' : 'height';
-    // const indexValue = hash || height;
-    // const [summary] = await knex('block')
-    //   .where(indexField, indexValue);
-    // return summary;
-    console.log(block);
     return {
       hash: block.hash,
       size: block.size,
@@ -27,13 +21,14 @@ const blocks = {
     };
   },
   find: async ({ paging }) => {
-    // // Return query promise
-    // const fromHeight = liveData.broadcast.height.overnode.to - paging.offset;
-    // return knex('block')
-    //   .where('height', '<=', fromHeight)
-    //   .orderBy('height', 'desc')
-    //   .limit(paging.limit);
-    return {};
+    const fromHeight = liveData.broadcast.height.bitcoind - (paging.offset + paging.limit);
+    const toHeight = fromHeight + paging.limit;
+    const promises = [];
+    for (let i = toHeight; i > fromHeight; --i) {
+      promises.push(blocks.get({ height: i }));
+    }
+    const results = await Promise.all(promises);
+    return results;
   },
 };
 
