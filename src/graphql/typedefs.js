@@ -134,10 +134,6 @@ const typeDefs = `
         # Admin function: raw access to bitcoind transaction via JSON-RPC.
         rpc_getrawtransaction(txid: String!,  verbose: Int): String
 
-        sync: [SyncJob]
-
-        sync_error(paging: Paging): [SyncError]
-
         peer(id: Int!): Peer
 
         peers: [Peer]
@@ -151,18 +147,6 @@ const typeDefs = `
       block: Block
       transaction: Transaction
       address: Address
-    }
-
-    type SyncJob {
-      name: String!
-      from_height: Int
-      to_height: Int
-    }
-
-    type SyncError {
-      height: Int!
-      name: String!
-      message: String
     }
 
     # A single bitcoin transaction.

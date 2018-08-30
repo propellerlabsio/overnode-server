@@ -1,7 +1,9 @@
+// TODO remove
+/* eslint-disable arrow-body-style, camelcase, no-unused-vars, max-len */
+
 import nJwt from 'njwt';
 import validator from 'validator';
 import * as util from './user/util';
-import { knex } from '../io/knex';
 
 // Temporary DDoS / flood control measure
 const MAX_USERS = 5;
@@ -13,18 +15,18 @@ const users = {
       throw new Error(`'${email}' is not a valid email address`);
     }
 
-    // Check we haven't oversubscribed (prevent DDoS / flood control)
-    const { count } = await knex('user').count().first();
-    if (Number(count) > MAX_USERS) {
-      throw new Error('Sorry, this server is over subscribed and not accepting new registrations.');
-    }
+    // // Check we haven't oversubscribed (prevent DDoS / flood control)
+    // const { count } = await knex('user').count().first();
+    // if (Number(count) > MAX_USERS) {
+    //   throw new Error('Sorry, this server is over subscribed and not accepting new registrations.');
+    // }
 
     // Check email isn't already registered
-    const [existing] = await knex('user')
-      .where('email', email);
-    if (existing) {
-      throw new Error('An account with that email already exists.');
-    }
+    // const [existing] = await knex('user')
+    //   .where('email', email);
+    // if (existing) {
+    //   throw new Error('An account with that email already exists.');
+    // }
 
     // Hash password
     const salt = util.getNewSalt();
@@ -32,12 +34,12 @@ const users = {
     const hashedPassword = await util.hashPassword(password, salt, iterations);
 
     // Insert user and hashed password into the database
-    return knex('user').insert({
-      email,
-      password: hashedPassword,
-      salt,
-      iterations,
-    });
+    // return knex('user').insert({
+    //   email,
+    //   password: hashedPassword,
+    //   salt,
+    //   iterations,
+    // });
   },
 
   /**

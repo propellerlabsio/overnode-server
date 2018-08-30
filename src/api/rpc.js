@@ -3,10 +3,7 @@
  *
  * NOTE: bitcoind is configured to limit the number of concurrent
  * requests it will handle.  Beyond that number it will throw an
- * error.  The number of concurrent requests must be shared
- * by blockchain syncing to the overnode database (forward and backward).
- * For this reason (as well as security) these methods are restricted
- * to site administrators.
+ * error.
  */
 
 import users from '../api/users';

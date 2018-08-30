@@ -23,7 +23,7 @@ Generally the following node settings are required or expected:
 
 	-usecashaddr=1 (default on most node implementations)
 	-server=1 (required for json-rpc)
-	-txindex=1 (required to sync transactions to overnode db)
+	-txindex=1 (required to get full transactions detail using rpc call to getrawtransaction)
 
 ## Building and running
 
@@ -120,10 +120,6 @@ A random secret used to sign JSON Web Tokens.
 
 Number of iterations to use when hashing a password before storing it in the database.  Higher numbers are more secure but take longer and consume more CPU.
 
-### NO_PRIORITY_SYNCING
-
-Mostly a developer option, if set to 'yes' then priority syncing will be disabled.  Priority syncing mode is entered when the server discovers that the overnode database is more than an hour or so behind the bitcoin blockchain.  In this mode, changes to live update / broadcast data are suspended while overnode catches up.
-
 ## API conventions
 
 ### Generic methods
@@ -149,36 +145,3 @@ This is to allow us to pass through requests from GraphQL with a minimal amount 
 
 Any api method that returns multiple records should implement paging and in a standardized way.  Each of these methods should take an additional object parameter named `paging` with integer parameters named `limit` and `offset`.  
 
-
-To make paging reliable for the user, it is presumed that the results returned from these methods should be sorted (e.g. via knex `.orderBy()`).
-
-#### **IMPORTANT NOTE** on paging performance
-
-Although the `offset` parameter could sometimes be passed unmodified to the knex query builder using the `.offset()` method, this often has severe performance implications.  For example, take the following example queries in which we want the first 10 blocks going back 400,000 blocks from the current block height.  In example A, no index is used and instead postgres must execute the query and discard four hundred thousand results before it will return the rows of interest.  In the second example, postgres will go immediately to the rows of interest since `height` is indexed.  The second example runs much, much faster than the first.
-
-##### Example A - Using `.offset()` (very, very slow)
-
-```js
-  async function find ({ paging }) => {
-    return knex('block')
-      .orderBy('height', 'desc')
-      .limit(paging.limit)
-      .offset(paging.offset);
-  }
-
-  const results = await find({ paging: { offset: 400000, limit: 10 }});
-```
-
-##### Example B - Using comparison on field that is indexed (fast)
-
-```js
-  async function find ({ paging }) => {
-    const fromHeight = liveData.broadcast.height.overnode.to - paging.offset;
-    return knex('block')
-      .where('height', '<=', fromHeight)
-      .orderBy('height', 'desc')
-      .limit(paging.limit);
-  }
-
-  const results = await find({ paging: { offset: 400000, limit: 10 }});
-```

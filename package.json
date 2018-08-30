@@ -12,15 +12,13 @@
     "express-graphql": "^0.6.11",
     "graphql": "^0.12.3",
     "graphql-tools": "^2.18.0",
-    "knex": "^0.14.2",
     "njwt": "^0.4.0",
-    "pg": "^7.4.1",
     "validator": "^9.4.1",
     "ws": "^4.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
+    "babel-preset-env": "^1.7.0",
     "eslint": "^4.16.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.8.0"

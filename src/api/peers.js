@@ -1,13 +1,15 @@
-import { knex } from '../io/knex';
+// TODO remove
+/* eslint-disable arrow-body-style, camelcase, no-unused-vars, max-len */
 import { liveData } from '../main';
 
 const peers = {
   get: ({ id }) => liveData.rpc.peers.find(peer => peer.id === id),
   find: () => liveData.rpc.peers,
   location: async ({ addr }) => {
-    const ipAddress = addr.split(':')[0];
-    const [location] = await knex('geolocation').where('ip_address', ipAddress);
-    return location;
+    // const ipAddress = addr.split(':')[0];
+    // const [location] = await knex('geolocation').where('ip_address', ipAddress);
+    // return location;
+    return {};
   },
 };
 

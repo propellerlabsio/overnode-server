@@ -3,7 +3,6 @@ import blocks from '../api/blocks';
 import currencies from '../api/currencies';
 import host from '../api/host';
 import inputs from '../api/inputs';
-import sync from '../api/sync';
 import limits from '../api/limits';
 import node from '../api/node';
 import outputs from '../api/outputs';
@@ -11,7 +10,7 @@ import peers from '../api/peers';
 import rpc from '../api/rpc';
 import search from '../api/search';
 import transactions from '../api/transactions';
-import users from '../api/users';
+// import users from '../api/users';
 
 function getToken(httpRequest) {
   let token;
@@ -64,8 +63,8 @@ const resolvers = {
     }),
   },
   Mutation: {
-    createUser: (root, args) => users.create(args),
-    requestToken: (root, args) => users.getToken(args),
+    // createUser: (root, args) => users.create(args),
+    // requestToken: (root, args) => users.getToken(args),
   },
   Peer: {
     location: peer => peers.location(peer),
@@ -82,8 +81,6 @@ const resolvers = {
     rpc_getrawtransaction: (root, { txid, verbose }, httpRequ) =>
       rpc.getrawtransaction({ txid, verbose, token: getToken(httpRequ) }),
     search: (root, args) => search.simple(args),
-    sync: (root, args) => sync.find(args),
-    sync_error: (root, args) => pagedQuery(sync.findError, args),
     transaction: (root, args) => transactions.get(args),
   },
   Transaction: {
