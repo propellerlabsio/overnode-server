@@ -15,6 +15,8 @@ const transactions = {
       time: transaction.time,
       input_count: transaction.vin.length,
       output_count: transaction.vout.length,
+      vin: transaction.vin, // used internally
+      vout: transaction.vout, // used internally
     };
   },
   findByBlock: ({ block, paging }) => {
