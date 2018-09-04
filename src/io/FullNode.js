@@ -16,7 +16,7 @@ class FullNode extends bcoin.FullNode {
       indexAddress: true,
       persistentMempool: true,
       maxOutbound,
-      peers,
+      nodes: peers,
     });
 
     this.on('connect', this.onConnect);

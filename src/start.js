@@ -13,10 +13,9 @@ import resolvers from './graphql/resolvers';
 import socket from './io/socket';
 import { create as createFullNode } from './io/FullNode';
 
-// import * as rpc from './io/rpc';
-// import { start as startMain } from './main';
+import { main, updatePrices } from './main';
 
-const main = async () => {
+const start = async () => {
   // Start bitcoin node
   const peers = process.env.PEERS ? process.env.PEERS.split(',') : null;
   const fullNode = createFullNode(
@@ -81,7 +80,10 @@ const main = async () => {
   try {
     // Start main management process for continually monitoring bitcoind,
     // compiling and broadcasting statistics over the websocket
-    // startMain();
+    main();
+
+    // Update prices periodically
+    // updatePrices();
   } catch (err) {
     // Misc error during regular processing. Log and play on
     console.error(err);
@@ -89,4 +91,4 @@ const main = async () => {
 };
 
 console.log(`Nodejs running in ${process.env.NODE_ENV} mode`);
-main();
+start();

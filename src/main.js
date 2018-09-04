@@ -1,8 +1,8 @@
 /* Allow console messages from this file only */
 /* eslint-disable no-console                  */
-import { request as rpc } from './io/rpc';
 import prices from './api/currencies';
 import { clientCount } from './io/socket';
+import { get as getFullNode } from './io/FullNode';
 
 let mempoolReadings = [];
 let lastRpcPeers = [];
@@ -45,7 +45,7 @@ export const liveData = {
   },
 };
 
-async function updatePrices() {
+export async function updatePrices() {
   try {
     await prices.update();
   } catch (err) {
@@ -56,11 +56,14 @@ async function updatePrices() {
   }
 }
 
-async function main() {
+export async function main() {
   // Get required data from bitcoind
-  liveData.rpc.info = await rpc('getinfo');
-  liveData.rpc.mempool = await rpc('getmempoolinfo');
-  liveData.rpc.peers = await rpc('getpeerinfo');
+  const fullNode = getFullNode();
+
+  liveData.rpc.info = await fullNode.rpc.getInfo([]);
+  liveData.rpc.mempool.bytes = await fullNode.rpc.mempool.getSize();
+  liveData.rpc.mempool.size = fullNode.mempool.txIndex.index.size;
+  liveData.rpc.peers = await fullNode.rpc.getPeerInfo([]);
 
   // Set server time for data age
   liveData.broadcast.time = new Date();
@@ -162,12 +165,4 @@ async function main() {
   // Setting to run again in 500ms until we get time to implement more sophisticated
   // logic
   setTimeout(main, 500);
-}
-
-export function start() {
-  // Main loop
-  main();
-
-  // Update prices periodically
-  updatePrices();
 }
