@@ -1,7 +1,7 @@
 import bcoin from 'bcash';
 
 export default class FullNode extends bcoin.FullNode {
-  constructor(network, dataDirectory, maxOutbound, nodes) {
+  constructor(network, dataDirectory, maxOutbound, peers) {
     super({
       network,
       prefix: dataDirectory,
@@ -15,8 +15,8 @@ export default class FullNode extends bcoin.FullNode {
       persistentMempool: true,
 
       //TODO REMOVE
-      maxOutbound: 2,
-      nodes: ['localhost:17591', 'localhost:17592'],
+      maxOutbound,
+      peers,
     });
 
     this.on('connect', this.onConnect);

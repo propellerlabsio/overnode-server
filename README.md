@@ -76,6 +76,12 @@ Bitcoin network: `regtest`, `testnet`, `main`.
 ### DATA_DIR
 File system folder where bcoin node data (blockchain etc) will be stored.  Note: this directory must be precreated before running for the first time.
 
+### MAX_OUTBOUND
+(Optional) maximum number of bitcoin node outbound connections.
+
+### PEERS
+(Optional) comma separated list of other bitcoin nodes to connect to
+
 ### NODE_ENV
 
 Set to `development` or `production` [as appropriate](http://expressjs.com/en/advanced/best-practice-performance.html#set-nodeenv-to-production).

@@ -5,6 +5,7 @@ import express from 'express';
 import graphqlHTTP from 'express-graphql';
 import cors from 'cors';
 import { makeExecutableSchema } from 'graphql-tools';
+import { setupExitHandler } from './exit';
 
 // Local imports
 import typeDefs from './graphql/typedefs';
@@ -12,13 +13,23 @@ import resolvers from './graphql/resolvers';
 import socket from './io/socket';
 import FullNode from './io/FullNode';
 
+let fullNode;
+
 // import * as rpc from './io/rpc';
 // import { start as startMain } from './main';
 
 const main = async () => {
   // Start bitcoin node
-  const fullNode = new FullNode(process.env.NETWORK, process.env.DATA_DIR);
+  const peers = process.env.PEERS ? process.env.PEERS.split(',') : null;
+  fullNode = new FullNode(
+    process.env.NETWORK,
+    process.env.DATA_DIR,
+    process.env.MAX_OUTBOUND,
+    peers,
+  );
   await fullNode.start();
+  setupExitHandler(fullNode);
+  console.log(`Running a bitcon full node connected to '${process.env.NETWORK}' network`);
 
   let app;
 
