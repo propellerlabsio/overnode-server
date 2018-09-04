@@ -15,8 +15,6 @@ class FullNode extends bcoin.FullNode {
       indexTx: true,
       indexAddress: true,
       persistentMempool: true,
-
-      //TODO REMOVE
       maxOutbound,
       peers,
     });
@@ -52,6 +50,6 @@ export const create = (network, dataDirectory, maxOutbound, peers) => {
     node = new FullNode(network, dataDirectory, maxOutbound, peers);
   }
   return node;
-}
+};
 
 export const get = () => node;

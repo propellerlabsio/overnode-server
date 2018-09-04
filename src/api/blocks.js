@@ -2,22 +2,31 @@
 /* eslint-disable arrow-body-style, camelcase, no-unused-vars */
 import { liveData } from '../main';
 import { request } from '../io/rpc';
+import { get as getFullNode } from '../io/FullNode';
+
 
 const blocks = {
   get: async ({ hash, height }) => {
-    const block = await request('getblock', (hash || height).toString());
-    let lastBlock = { time: 0 };
-    if (block.height > 1) {
-      lastBlock = await request('getblock', (block.height - 1).toString());
+    if (!height) {
+      throw new Error('TODO - get by hash not reimplemented yet');
+    }
+    const fullNode = getFullNode();
+    const block = await fullNode.getBlock(height);
+    const blockDetails = block.getJSON();
+    // Remediate Bcoin bug: height not returned in JSON
+    blockDetails.height = height || block.getCoinbaseHeight();
+    let lastBlockDetails = { time: 0 };
+    if (blockDetails.height > 0) {
+      lastBlockDetails = (await fullNode.getBlock(blockDetails.height - 1)).getJSON();
     }
     return {
-      hash: block.hash,
-      size: block.size,
-      height: block.height,
-      time: block.time,
-      tx_count: block.tx.length,
-      interval: block.time - lastBlock.time,
-      tx: block.tx, // Used internally - e.g. transactions.findByBlock()
+      hash: blockDetails.hash,
+      size: block.getSize(),
+      height: blockDetails.height,
+      time: blockDetails.time,
+      tx_count: blockDetails.txs.length,
+      interval: blockDetails.time - lastBlockDetails.time,
+      tx: blockDetails.txs, // Used internally - e.g. transactions.findByBlock()
     };
   },
   find: async ({ paging }) => {
