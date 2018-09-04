@@ -11,19 +11,9 @@ There is an example client / UI implementation written in VueJs which is hosted 
 
 ## Prerequisites
 
-1. You need a Bitcoin Cash node running with RPC access.  Overnode has been run with BitcoinABC and Bitcoin Unlimited Cash successfully. See [Node Settings](#node-settings) for expected node settings.
+1. You need an empty / dedicated postgresql database available.
 
-2. You need an empty / dedicated postgresql database available.
-
-3. You need to configure your [Environment variables](#environment-variables).
-
-## Node settings
-
-Generally the following node settings are required or expected:
-
-	-usecashaddr=1 (default on most node implementations)
-	-server=1 (required for json-rpc)
-	-txindex=1 (required to get full transactions detail using rpc call to getrawtransaction)
+2. You need to configure your [Environment variables](#environment-variables).
 
 ## Building and running
 
@@ -72,33 +62,19 @@ In local development, you can create a file in the application root directory ca
 
 The following is an example of the `.env` file contents:
 ```
-BITCOIN_RPC_AUTH=overnode:fOSJ+IbkNnG9ftV+xrOGpMKvbEPkrCkX1wkVFTv1CLb0=
-PG_CONNECTION_STRING=postgresql://overnode:overnode@localhost/overnode
+NETWORK=regtest
+DATA_DIR=/mnt/blockchain/bcash/
 NODE_ENV=development
 GRAPHIQL=on
 PORT=4000
 DONATION_ADDRESS=bitcoincash:qqtfhm837rqfteckfm5khxj69y8yyscywc6g4e70em
 ```
 
-### BITCOIN_RPC_AUTH
+### NETWORK
+Bitcoin network: `regtest`, `testnet`, `main`.
 
-The `user:password` for connecting to the bitcoin node via JSON-RPC.  If this environment variable is not provided, it is necessary that the BITCOIN_COOKIE_DIRECTORY variable be set.
-
-### BITCOIN_COOKIE_DIRECTORY
-
-If no BITCOIN_RPC_AUTH is provided, this folder is read for a file called `.cookie` which is recreated on restart of the `bitcoind` daemon and contains the RPC credentials that can be used to log in.  **NOTE:** When connecting your node to `testnet` using BU Cash, the `.cookie` file will be placed in a subdirectory of your datadirectory - e.g. `/testnet3`.  The full path to the cookie must be included in this variable value.
-
-### BITCOIN_RPC_HOST
-If not nominated, defaults to localhost '127.0.0.1'.
-
-### BITCOIN_RPC_PORT
-If not nominated, defaults to 8332. Note that for testnet, the Bitcoin Unlimited Cash node software will default the RPC port to 18332.  If there are any doubts, configure the bitcoin node to start with a specific port using the `-rpcport=<port>` argument.
-
-### PG_CONNECTION_STRING
-
-A postgresql `conninfo` string to connect to the database in the format:
-
-`postgresql://<role>:<password>@<server>/<database>`
+### DATA_DIR
+File system folder where bcoin node data (blockchain etc) will be stored.  Note: this directory must be precreated before running for the first time.
 
 ### NODE_ENV
 

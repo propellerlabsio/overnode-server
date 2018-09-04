@@ -71,19 +71,7 @@ export function request(method, ...params) {
 
 export async function initialize() {
   try {
-    // If rpc user and password haven't been provided
-    // attempt to load cookie from Bitcoin data directory
-    if (!process.env.BITCOIN_RPC_AUTH) {
-      if (!process.env.BITCOIN_COOKIE_DIRECTORY) {
-        throw new Error('No BITCOIN_RPC_AUTH or BITCOIN_COOKIE_DIRECTORY environment variables set.');
-      } else {
-        // Get RPC auth from cookie in Bitcoin data directory
-        const fullPath = path.join(process.env.BITCOIN_COOKIE_DIRECTORY, '.cookie');
-        auth = fs.readFileSync(fullPath);
-      }
-    } else {
-      auth = process.env.BITCOIN_RPC_AUTH;
-    }
+    auth = process.env.BITCOIN_RPC_AUTH;
 
     // Test credentials
     await request('getinfo');

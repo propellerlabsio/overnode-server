@@ -6,6 +6,7 @@
   "main": "index.js",
   "dependencies": {
     "axios": "^0.17.1",
+    "bcash": "git+https://github.com/proehlen/bcash.git",
     "cors": "^2.8.4",
     "dotenv": "^4.0.0",
     "express": "^4.16.2",

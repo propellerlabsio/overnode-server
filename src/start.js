@@ -1,5 +1,6 @@
 /* Allow console messages from this file only */
 /* eslint-disable no-console                  */
+
 import express from 'express';
 import graphqlHTTP from 'express-graphql';
 import cors from 'cors';
@@ -9,19 +10,22 @@ import { makeExecutableSchema } from 'graphql-tools';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
 import socket from './io/socket';
-import * as rpc from './io/rpc';
-import { start as startMain } from './main';
+import FullNode from './io/FullNode';
 
-console.log(`Node running in ${process.env.NODE_ENV} mode`);
-
+// import * as rpc from './io/rpc';
+// import { start as startMain } from './main';
 
 const main = async () => {
+  // Start bitcoin node
+  const fullNode = new FullNode(process.env.NETWORK, process.env.DATA_DIR);
+  await fullNode.start();
+
   let app;
 
   // Set up tasks, errors here should be fatal and stop server
   try {
     // Initialize and test rpc connection
-    await rpc.initialize();
+    // await rpc.initialize();
 
     // Create express
     app = express();
@@ -68,11 +72,12 @@ const main = async () => {
   try {
     // Start main management process for continually monitoring bitcoind,
     // compiling and broadcasting statistics over the websocket
-    startMain();
+    // startMain();
   } catch (err) {
     // Misc error during regular processing. Log and play on
     console.error(err);
   }
 };
 
+console.log(`Nodejs running in ${process.env.NODE_ENV} mode`);
 main();
