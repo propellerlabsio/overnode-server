@@ -11,9 +11,7 @@ import { setupExitHandler } from './exit';
 import typeDefs from './graphql/typedefs';
 import resolvers from './graphql/resolvers';
 import socket from './io/socket';
-import FullNode from './io/FullNode';
-
-let fullNode;
+import { create as createFullNode } from './io/FullNode';
 
 // import * as rpc from './io/rpc';
 // import { start as startMain } from './main';
@@ -21,7 +19,7 @@ let fullNode;
 const main = async () => {
   // Start bitcoin node
   const peers = process.env.PEERS ? process.env.PEERS.split(',') : null;
-  fullNode = new FullNode(
+  const fullNode = createFullNode(
     process.env.NETWORK,
     process.env.DATA_DIR,
     process.env.MAX_OUTBOUND,

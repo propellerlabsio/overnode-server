@@ -1,6 +1,8 @@
 import bcoin from 'bcash';
 
-export default class FullNode extends bcoin.FullNode {
+let node;
+
+class FullNode extends bcoin.FullNode {
   constructor(network, dataDirectory, maxOutbound, peers) {
     super({
       network,
@@ -42,3 +44,14 @@ export default class FullNode extends bcoin.FullNode {
     this.startSync();
   }
 }
+
+export const create = (network, dataDirectory, maxOutbound, peers) => {
+  if (node) {
+    throw new Error('Full node already instantiated');
+  } else {
+    node = new FullNode(network, dataDirectory, maxOutbound, peers);
+  }
+  return node;
+}
+
+export const get = () => node;

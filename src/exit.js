@@ -1,11 +1,9 @@
 /* eslint-disable import/prefer-default-export */
+import nodeCleanup from 'node-cleanup';
 
 export function setupExitHandler(fullNode) {
-  // prevent process from closing instantly and not allowing us to cleanaup
-  process.stdin.resume();
-
-  const exitHandler = () => {
-    if (fullNode) {
+  nodeCleanup((exitCode, signal) => {
+    if (signal) {
       console.log('Stopping full node...');
       const stopNode = fullNode
         .close()
@@ -14,21 +12,12 @@ export function setupExitHandler(fullNode) {
             throw err;
           });
         })
-        .then(() => console.log('Full node stopped'));
-      Promise.resolve(stopNode);
+        .then(() => {
+          console.log('Full node stopped')
+          process.kill(process.pid, signal);
+        });
+      nodeCleanup.uninstall(); // don't call cleanup handler again
+      return false;
     }
-  }
-
-  // Handle regular exit
-  process.on('exit', exitHandler);
-
-  // Catch ctrl+c event
-  process.on('SIGINT', exitHandler);
-
-  // Catch "kill pid" (for example: nodemon restart)
-  process.on('SIGUSR1', exitHandler);
-  process.on('SIGUSR2', exitHandler);
-
-  // Catches uncaught exceptions
-  process.on('uncaughtException', exitHandler);
+  });
 }
