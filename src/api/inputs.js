@@ -18,12 +18,15 @@ const inputs = {
 
     // Build promises to update UTXO value in our results
     const promises = results.map((result, index) => {
-      return outputs
-        .get({ transaction_id: result.transaction_id, output_number: result.output_number })
-        .then((output) => {
-          result.output_value = output.value;
-          return result;
-        });
+      const output_value = result.coinbase
+        ? transaction.vout
+          .reduce((previous, current) => {
+            return current.value + previous.value;
+          }, { value: 0 })
+        : outputs
+          .get({ transaction_id: result.transaction_id, output_number: result.output_number })
+          .then(output => output.value);
+      return Object.assign(result, { output_value });
     });
 
     return Promise.all(promises);
