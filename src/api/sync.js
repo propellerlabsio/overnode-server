@@ -191,11 +191,8 @@ const sync = {
         // Get block.
         const block = await rpc('getblock', hash);
 
-        // Populate block table
-        await sync.execute({ name: 'populate_block_table', block, direction });
-
-        // Sync transaction to database
-        await sync.execute({ name: 'populate_transaction_tables', block, direction });
+        // Sync addresses to database
+        await sync.execute({ name: 'syncAddresses', block, direction });
       } catch (err) {
         console.log(`Sync skipping block ${height} due to error: ${middleTrim(err.message, 256)}`);
       }

@@ -24,6 +24,14 @@ exports.up = function(knex, Promise) {
       code: 'USD',
       label: 'United States Dollars',
       decimal_places: 2,
+    }, {
+      code: 'EUR',
+      label: 'Euro',
+      decimal_places: 2,
+    }, {
+      code: 'JPY',
+      label: 'Japanese Yen',
+      decimal_places: 0,
     }]);
   });
 };

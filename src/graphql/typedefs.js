@@ -1,15 +1,26 @@
 // Construct a schema, using GraphQL schema language
-
-// TODO Several fields are using type Float because of GraphQL's lack
-// of a native BigInt scalar type.  We should import a BigInt
-// implementation or roll our own.  Examples include:
-// Block.nonce, Host.totalmem, Peer.bytessent and bytesrecv.
 const typeDefs = `
     type Address {
-      address: String!
+      address: String
       totals: AddressTotals!
-      received(paging: Paging): [TransactionOutput]
-      spent(paging: Paging): [TransactionInput]
+      received(paging: Paging): [AddressReceived]
+      spent(paging: Paging): [AddressSpent]
+    }
+
+    type AddressReceived {
+      address: String!
+      height: Int!
+      transaction_id: String!
+      output_number: Int!
+      value: Float!
+    }
+
+    type AddressSpent {
+      address: String!
+      height: Int!
+      transaction_id: String!
+      input_number: Int!
+      value: Float!
     }
 
     type AddressTotals {

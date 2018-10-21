@@ -47,11 +47,11 @@ function pagedQuery(apiFunction, args) {
 
 const resolvers = {
   Address: {
-    received: ({ address }, args) => pagedQuery(outputs.findByAddress, {
+    received: ({ address }, args) => pagedQuery(addresses.findReceived, {
       address,
       paging: args.paging,
     }),
-    spent: ({ address }, args) => pagedQuery(inputs.findByAddress, {
+    spent: ({ address }, args) => pagedQuery(addresses.findSpent, {
       address,
       paging: args.paging,
     }),

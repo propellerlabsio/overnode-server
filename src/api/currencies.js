@@ -1,7 +1,4 @@
-/* Ignore camel case requirement since many of the variables and arguments    */
-/* passed through unmodified from graphql queries where the sources are       */
-/* postgresql where camelcase names are not supported.                        */
-/* eslint-disable camelcase                                                   */
+// TODO Credit CryptoCompare with rate data in client
 
 import axios from 'axios';
 import { knex } from '../io/knex';
@@ -10,17 +7,14 @@ const currencies = {
   find: () =>
     knex('currency').orderBy('code'),
   async update() {
-    // Get prices from CoinMarketCap (don't call more than once every
-    // five minutes since they don't update more frequently)
-    const cmcRequest = await axios.get('https://api.coinmarketcap.com/v1/ticker/bitcoin-cash/');
-    if (cmcRequest.status === 200) {
-      const [{ price_btc, price_usd, last_updated }] = cmcRequest.data;
-      await Promise.all([
-        knex('currency').where('code', 'BTC').update({ bch_rate: price_btc, rate_updated: last_updated }),
-        knex('currency').where('code', 'USD').update({ bch_rate: price_usd, rate_updated: last_updated }),
-      ]);
+    // Get prices from CryptoCompare (don't call too frequently)
+    const ccRequest = await axios.get('https://min-api.cryptocompare.com/data/price?fsym=BCH&tsyms=USD,BTC,EUR,JPY');
+    if (ccRequest.status === 200) {
+      const lastUpdated = Math.floor(Date.now() / 1000);
+      await Promise.all(Object.entries(ccRequest.data).map(([key, value]) =>
+        knex('currency').where('code', key).update({ bch_rate: value, rate_updated: lastUpdated })));
     } else {
-      throw new Error(`Unable to upate prices from CMC.  Status === ${cmcRequest.status}`);
+      throw new Error(`Unable to upate prices from CryptoCompare.  Status === ${ccRequest.status}`);
     }
   },
 };

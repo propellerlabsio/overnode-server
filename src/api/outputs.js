@@ -1,23 +1,30 @@
-/* Ignore camel case requirement since many of the variables and arguments    */
-/* passed through unmodified from graphql queries where the sources are       */
-/* postgresql where camelcase names are not supported.                        */
-/* eslint-disable camelcase                                                   */
-
-import { knex } from '../io/knex';
+// TODO remove
+/* eslint-disable arrow-body-style, camelcase, no-unused-vars, max-len */
+import transactions from './transactions';
 
 const outputs = {
-  find: ({ transaction_id, paging }) =>
-    knex('output')
-      .where('transaction_id', transaction_id)
-      .andWhere('output_number', '>=', paging.offset)
-      .limit(paging.limit)
-      .orderBy('output_number'),
-  findByAddress: ({ address, paging }) =>
-    knex('output')
-      .where('address', address)
-      .orderBy('value', 'DESC')
-      .offset(paging.offset)
-      .limit(paging.limit),
+  get: async ({ transaction_id, output_number }) => {
+    const transaction = await transactions.get({ transaction_id });
+    return transaction.vout[output_number];
+  },
+  find: async ({ transaction_id, paging }) => {
+    const transaction = await transactions.get({ transaction_id });
+    const result = transaction.vout
+      .slice(paging.offset, (paging.offset + paging.limit))
+      .map((output, index) => {
+        const addresses = output.scriptPubKey && output.scriptPubKey.addresses ?
+          output.scriptPubKey.addresses :
+          ['???']; // TODO investigate what to do with these - possibly pay to script hash
+        return {
+          transaction_id,
+          output_number: index + paging.offset,
+          value: output.value,
+          address: addresses[0], // TODO follow up why we are returning 2 address properties in schema
+          addresses,
+        };
+      });
+    return result;
+  },
 };
 
 export default outputs;

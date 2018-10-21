@@ -6,34 +6,20 @@
 import { knex } from '../io/knex';
 
 const addresses = {
-  get: async ({ address }) => {
-    const outputWithMultiple = knex('output_address')
-      .where('address', address)
-      .first();
+  // Dummy node needed for child nodes, just return address
+  get: async ({ address }) => ({ address }),
 
-    const outputWithSingle = knex('output')
-      .where('address', address)
-      .first();
-
-    const [a, b] = await Promise.all([
-      outputWithMultiple,
-      outputWithSingle,
-    ]);
-
-    return a || b;
-  },
   getTotals: async ({ address }) => {
     const totalReceivedQuery =
-      knex('output')
+      knex('address_received')
         .sum('value as received')
-        .from('output')
+        .from('address_received')
         .where('address', address)
         .first();
     const totalSpentQuery =
-      knex('output')
+      knex('address_spent')
         .sum('value as spent')
-        .from('output')
-        .whereNotNull('input_transaction_id')
+        .from('address_spent')
         .andWhere('address', address)
         .first();
     const [{ received }, { spent }] = await Promise.all([
@@ -46,8 +32,14 @@ const addresses = {
       spent: spent || 0,
     };
   },
+  findReceived: ({ address }) =>
+    knex('address_received')
+      .where('address', address),
+  findSpent: ({ address }) =>
+    knex('address_spent')
+      .where('address', address),
   findByOutput: ({ transaction_id, output_number }) =>
-    knex('output_address')
+    knex('address_received')
       .select('address')
       .where('transaction_id', transaction_id)
       .andWhere('output_number', output_number)

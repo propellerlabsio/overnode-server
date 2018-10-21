@@ -75,40 +75,43 @@ async function checkPeerLocations() {
       // Don't check this peer again
       peerLocationsChecked.push(statusUnknown.addr);
 
-      // See if we have peer in database
-      const [ipAddress, port] = statusUnknown.addr.split(':');
-      const knownPeer = await knex('peer').where('ip_address', ipAddress).andWhere('port', port).first();
-      if (!knownPeer) {
-        await knex('peer').insert({
-          ip_address: ipAddress,
-          port,
-        });
-      }
-
-      // See if we have location in database
-      const knownLocation = await knex('geolocation').where('ip_address', ipAddress).first();
-      if (!knownLocation) {
-        // No existing record - ask geolocation service for address
-        const apiAddress = await axios.get(`http://ip-api.com/json/${ipAddress}`);
-        if (apiAddress.status === 200) {
-          const { data } = apiAddress;
-          await knex('geolocation').insert({
+      // Ignore ipv6(?)/local(?) addresses
+      if (!statusUnknown.addr.includes('[')) {
+        // See if we have peer in database
+        const [ipAddress, port] = statusUnknown.addr.split(':');
+        const knownPeer = await knex('peer').where('ip_address', ipAddress).andWhere('port', port).first();
+        if (!knownPeer) {
+          await knex('peer').insert({
             ip_address: ipAddress,
-            location_fetched: new Date(),
-            country: data.country,
-            country_code: data.countryCode,
-            region: data.region,
-            region_name: data.regionName,
-            city: data.city,
-            zip: data.zip,
-            lat: data.lat,
-            lon: data.lon,
-            proxy: data.proxy,
-            timezone: data.timezone,
-            isp: data.isp,
-            org: data.org,
-            as: data.as,
+            port,
           });
+        }
+
+        // See if we have location in database
+        const knownLocation = await knex('geolocation').where('ip_address', ipAddress).first();
+        if (!knownLocation) {
+          // No existing record - ask geolocation service for address
+          const apiAddress = await axios.get(`http://ip-api.com/json/${ipAddress}`);
+          if (apiAddress.status === 200) {
+            const { data } = apiAddress;
+            await knex('geolocation').insert({
+              ip_address: ipAddress,
+              location_fetched: new Date(),
+              country: data.country,
+              country_code: data.countryCode,
+              region: data.region,
+              region_name: data.regionName,
+              city: data.city,
+              zip: data.zip,
+              lat: data.lat,
+              lon: data.lon,
+              proxy: data.proxy,
+              timezone: data.timezone,
+              isp: data.isp,
+              org: data.org,
+              as: data.as,
+            });
+          }
         }
       }
     }
