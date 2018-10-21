@@ -5,10 +5,19 @@ import { request } from '../io/rpc';
 
 const blocks = {
   get: async ({ hash, height }) => {
-    const block = await request('getblock', (hash || height).toString());
+    let blockhash;
+
+    // Get hash from bitcoind if we weren't given it.  TODO: Don't do this
+    // if node software is BU as their version of 'getblock' can accept height
+    if (hash) {
+      blockhash = hash;
+    } else {
+      blockhash = await request('getblockhash', height);
+    }
+    const block = await request('getblock', blockhash);
     let lastBlock = { time: 0 };
     if (block.height > 1) {
-      lastBlock = await request('getblock', (block.height - 1).toString());
+      lastBlock = await request('getblock', block.previousblockhash);
     }
     return {
       hash: block.hash,
