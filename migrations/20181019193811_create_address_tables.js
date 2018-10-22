@@ -22,7 +22,7 @@ exports.up = function(knex, Promise) {
           .comment('Output number (vout) in which the funds were received');
         table.decimal('value', 16, 8)
           .comment('Value received in BCH');
-        table.primary(['address', 'height', 'transaction_id', 'output_number']);
+        table.index(['address', 'height', 'transaction_id', 'output_number']);
     }),
 
     knex.schema
@@ -37,7 +37,7 @@ exports.up = function(knex, Promise) {
           .comment('Input number in which the funds were spent');
         table.decimal('value', 16, 8)
           .comment('Value spent in BCH');
-        table.primary(['address', 'height', 'transaction_id', 'input_number']);
+        table.index(['address', 'height', 'transaction_id', 'input_number']);
     }),
   ]);
 };
