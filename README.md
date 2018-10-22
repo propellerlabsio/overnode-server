@@ -79,7 +79,8 @@ PG_CONNECTION_STRING=postgresql://overnode:overnode@localhost/overnode
 NODE_ENV=development
 GRAPHIQL=on
 PORT=4000
-DONATION_ADDRESS=bitcoincash:qqtfhm837rqfteckfm5khxj69y8yyscywc6g4e70em
+DONATION_ADDRESS=bitcoincash:pqtuh9xka8zr4hmcszufu3fd784l3asfh5hfk57wx8
+JWT_SIGNING_KEY=secretsecretsecret
 ```
 
 ### BITCOIN_RPC_AUTH

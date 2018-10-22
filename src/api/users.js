@@ -28,7 +28,7 @@ const users = {
 
     // Hash password
     const salt = util.getNewSalt();
-    const iterations = Number(process.env.HASH_PASSWORD_ITERATIONS);
+    const iterations = Number(process.env.HASH_PASSWORD_ITERATIONS) || 100000;
     const hashedPassword = await util.hashPassword(password, salt, iterations);
 
     // Insert user and hashed password into the database
@@ -66,6 +66,9 @@ const users = {
         };
 
         // Create token and return compacted version
+        if (!process.env.JWT_SIGNING_KEY) {
+          throw new Error('No configured JWT_SIGNING_KEY');
+        }
         const token = nJwt.create(claims, process.env.JWT_SIGNING_KEY);
 
         // If permanent token requested, set expiry out to end of the century
